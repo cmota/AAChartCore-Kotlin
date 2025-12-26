@@ -3,14 +3,14 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 object AndroidConstants {
     const val minSdkVersion = 19
-    const val targetSdkVersion = 30
-    const val compileSdkVersions = 30
-    const val buildToolsVersion = "30.0.2"
+    const val targetSdkVersion = 34
+    const val compileSdkVersions = 34
+    const val buildToolsVersion = "34.0.0"
 }
 
 object Versions {
     const val build_gradle_version = "7.3.1"
-    const val kotlin_gradle_plugin_version = "1.9.23"
+    const val kotlin_gradle_plugin_version = "1.9.20"
     const val bintray_plugin_version = "1.8.5"
 
     const val bintray_version = "1.8.5"

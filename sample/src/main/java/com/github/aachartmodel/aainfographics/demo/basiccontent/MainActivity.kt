@@ -220,6 +220,9 @@ class MainActivity : AppCompatActivity() {
                 "customizeEveryDataLabelSinglelyByDataLabelsFormatter---通过 formatter 来自定义单个 dataLabels 元素",
                 "configureColorfulDataLabelsForPieChart---为饼图配置多彩 dataLabels"
             ),
+            arrayOf(
+                "Compose AAChartView (AndroidView)"
+            ),
         )
     private val chartTypeArr =
         arrayOf(
@@ -425,6 +428,9 @@ class MainActivity : AppCompatActivity() {
                 "customizeEveryDataLabelSinglelyByDataLabelsFormatter",
                 "configureColorfulDataLabelsForPieChart"
             ),
+            arrayOf( /*Compose demo*/
+                AAChartType.Spline.value
+            ),
         )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -530,6 +536,7 @@ class MainActivity : AppCompatActivity() {
             "JS Function For AALegend | 通过带有 JS 函数的自定义 AALegend",
             "JS Function For AAChartEvents---通过 JSFunction 自定义 AAChartEvents 的事件",
             "JS Function For AAOptions---通过 JSFunction 自定义 AAOptions 内容",
+            "Compose Demo (AndroidView)"
             )
         val listView = findViewById<ExpandableListView>(R.id.exlist_lol)
         val myAdapter =
@@ -566,6 +573,7 @@ class MainActivity : AppCompatActivity() {
                 12 -> goToJSFunctionForAALegendActivity(chartType,childPosition)
                 13 -> goToJSFunctionForAAChartEventsActivity(chartType,childPosition)
                 14 -> goToJSFunctionForAAOptionsActivity(chartType,childPosition)
+                15 -> goToComposeChartActivity()
             }
             Toast.makeText(
                 this@MainActivity,
@@ -711,6 +719,11 @@ class MainActivity : AppCompatActivity() {
         )
         intent.putExtra(kChartTypeKey, chartType)
         intent.putExtra("position", position)
+        startActivity(intent)
+    }
+
+    private fun goToComposeChartActivity() {
+        val intent = Intent(this, com.github.aachartmodel.aainfographics.demo.compose.ComposeChartActivity::class.java)
         startActivity(intent)
     }
 
