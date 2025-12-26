@@ -2,7 +2,6 @@ package com.github.aachartmodel.aainfographics.demo.chartcomposer
 
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartLineDashStyleType
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartModel
-import com.github.aachartmodel.aainfographics.aachartcreator.AAChartSymbolStyleType
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartSymbolType
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartType
 import com.github.aachartmodel.aainfographics.aachartcreator.AASeriesElement
@@ -12,6 +11,8 @@ import com.github.aachartmodel.aainfographics.aatools.AANull
 import kotlin.math.sin
 
 object CustomStyleChartComposer2 {
+
+    // https://github.com/AAChartModel/AAChartCore-Kotlin/issues/260
     fun colorfulMarkerWithZonesChart(): AAChartModel {
         // 生成平滑波浪数据
         fun generateWaveData(amplitude: Double, phase: Double, step: Double, count: Int, noise: Double = 0.0): Array<Any> {
