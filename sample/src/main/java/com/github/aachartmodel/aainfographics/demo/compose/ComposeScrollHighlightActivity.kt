@@ -121,15 +121,20 @@ private fun AndroidChartView(
         factory = { ctx ->
             AAChartView(ctx).also { view ->
                 chartViewState.value = view
+            }
+        },
+        update = { view ->
+            // Draw once the view has a size; avoids blank screen on first compose.
+            view.post {
                 view.aa_drawChartWithChartOptions(aaOptions.value)
-                view.post { scrollToPoint(view, 5) }
+                scrollToPoint(view, 5)
             }
         }
     )
 }
 
 private fun makeOptions(): AAOptions {
-    val pointsCount = 50
+    val pointsCount = 10
     val categories = (0 until pointsCount).map { it.toString() }.toTypedArray()
     val sineData = (0 until pointsCount).map { i ->
         val rad = (i.toDouble() / pointsCount) * Math.PI * 2
@@ -145,12 +150,12 @@ private fun makeOptions(): AAOptions {
         .chart(
             AAChart()
                 .type(AAChartType.Column)
-                .margin(arrayOf(16, 12, 16, 12))
-//                .scrollablePlotArea(
-//                    AAScrollablePlotArea()
-//                        .minWidth(1200)
-//                        .scrollPositionX(0.4f)
-//                )
+//                .margin(arrayOf(16, 12, 16, 12))
+                .scrollablePlotArea(
+                    AAScrollablePlotArea()
+                        .minWidth(1200)
+                        .scrollPositionX(0.4f)
+                )
         )
         .title(AATitle().text("Weekly Temperature"))
         .subtitle(AASubtitle().text("Scroll to a point then highlight it"))
@@ -171,11 +176,11 @@ private fun makeOptions(): AAOptions {
 
 private fun scrollToPoint(chartView: AAChartView?, targetIndex: Int) {
     val safeView = chartView ?: return
-    val js = AAJSStringPurer.pureJavaScriptFunctionString(
+    val js =
         """
-            	// Scroll the x-axis to the target point and highlight it.
+        // Scroll the x-axis to the target point and highlight it.
 		function scrollToPoint(targetIndex) {
-const chart = aaGlobalChart;
+            const chart = aaGlobalChart;
 			const series = chart.series[0];
 			const point = series.points[targetIndex];
 			if (!point) {
@@ -196,9 +201,9 @@ const chart = aaGlobalChart;
 			chart.tooltip.refresh(point);
 		}
 
-scrollToPoint($targetIndex);
+        scrollToPoint($targetIndex);
         """.trimIndent()
-    )
+
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
         safeView.evaluateJavascript(js) { }
     } else {
@@ -208,12 +213,15 @@ scrollToPoint($targetIndex);
 
 private fun resetZoom(chartView: AAChartView?) {
     val safeView = chartView ?: return
-    val js = AAJSStringPurer.pureJavaScriptFunctionString(
-        "(function(){" +
-            "var chart = this;" +
-            "chart.xAxis[0].setExtremes(null, null, true, {duration:200});" +
-        "})()"
-    )
+    val js = """
+        function resetZoom() {
+            const chart = aaGlobalChart;
+            chart.xAxis[0].setExtremes(null, null, true, { duration: 200 });
+        }
+        
+        resetZoom();
+    """.trimIndent()
+
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
         safeView.evaluateJavascript(js) { }
     } else {
