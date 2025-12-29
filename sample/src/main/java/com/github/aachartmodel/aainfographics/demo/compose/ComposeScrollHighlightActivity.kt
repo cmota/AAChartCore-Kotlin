@@ -41,7 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composable 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -109,20 +109,26 @@ private fun ScaleTonalButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     containerColor: Color = Color(0xFFF0F4F8),
-    pressedColor: Color = Color(0xFFE0E4E8),
+    pressedColor: Color = Color(0xFFD0D4D8),
+    selectedColor: Color = PrimaryBlue,
+    isSelected: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.9f else 1f, label = "scale")
-    val bgColor = if (isPressed) pressedColor else containerColor
+    val scale by animateFloatAsState(if (isPressed) 0.85f else 1f, label = "scale")
+    val bgColor = when {
+        isSelected -> selectedColor
+        isPressed -> pressedColor
+        else -> containerColor
+    }
 
     FilledTonalButton(
         onClick = onClick,
         modifier = modifier.scale(scale),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.filledTonalButtonColors(containerColor = bgColor),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp),
         interactionSource = interactionSource
     ) {
         content()
@@ -229,27 +235,43 @@ private fun ScrollHighlightScreen() {
                     Text("← 左右滑动 →", style = MaterialTheme.typography.labelSmall, color = Color(0xFFBBBBBB))
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    val quickIndices = listOf(0, 10, 20, 30, 40, 49)
+                val lazyRowState = rememberLazyListState()
+                val quickIndices = listOf(0, 10, 20, 30, 40, 49)
+
+                // 当选中索引变化时，滚动到对应按钮位置
+                LaunchedEffect(selectedIndex) {
+                    val index = quickIndices.indexOf(selectedIndex)
+                    if (index >= 0) {
+                        lazyRowState.animateScrollToItem(index)
+                    }
+                }
+
+                LazyRow(
+                    state = lazyRowState,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     items(quickIndices.size) { i ->
-                        FilledTonalButton(
+                        val isSelected = selectedIndex == quickIndices[i]
+                        ScaleTonalButton(
                             onClick = {
                                 selectedIndex = quickIndices[i]
                                 chartView?.scrollToPoint(quickIndices[i])
                             },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color(0xFFF0F4F8)),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            isSelected = isSelected,
+                            selectedColor = Color(0xFFFF0000)
                         ) {
-                            Text(quickIndices[i].toString(), fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+                            Text(
+                                quickIndices[i].toString(),
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isSelected) Color.White else Color(0xFF333333)
+                            )
                         }
                     }
                     item {
-                        FilledTonalButton(
+                        ScaleTonalButton(
                             onClick = { chartView?.resetZoom() },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = AccentOrange.copy(alpha = 0.15f)),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            containerColor = AccentOrange.copy(alpha = 0.15f),
+                            pressedColor = AccentOrange.copy(alpha = 0.3f)
                         ) {
                             Icon(Icons.Default.Refresh, contentDescription = "重置", tint = AccentOrange, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(4.dp))
