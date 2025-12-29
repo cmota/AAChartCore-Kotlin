@@ -41,6 +41,7 @@ import com.github.aachartmodel.aainfographics.aaoptionsmodel.AATooltip
 import com.github.aachartmodel.aainfographics.aaoptionsmodel.AAXAxis
 import com.github.aachartmodel.aainfographics.aaoptionsmodel.AAYAxis
 import com.github.aachartmodel.aainfographics.aatools.AAJSStringPurer
+import com.github.aachartmodel.aainfographics.demo.chartcomposer.BasicChartComposer
 import kotlin.math.sin
 
 class ComposeScrollHighlightActivity : ComponentActivity() {
@@ -119,14 +120,17 @@ private fun AndroidChartView(
             .fillMaxWidth()
             .height(360.dp),
         factory = { ctx ->
-            AAChartView(ctx).also { view ->
-                chartViewState.value = view
+            AAChartView(ctx).apply {
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                )
             }
         },
         update = { view ->
             // Draw once the view has a size; avoids blank screen on first compose.
             view.post {
-                view.aa_drawChartWithChartOptions(aaOptions.value)
+                view.aa_drawChartWithChartOptions(makeOptions())
                 scrollToPoint(view, 5)
             }
         }
@@ -134,7 +138,7 @@ private fun AndroidChartView(
 }
 
 private fun makeOptions(): AAOptions {
-    val pointsCount = 10
+    val pointsCount = 50
     val categories = (0 until pointsCount).map { it.toString() }.toTypedArray()
     val sineData = (0 until pointsCount).map { i ->
         val rad = (i.toDouble() / pointsCount) * Math.PI * 2
@@ -151,11 +155,11 @@ private fun makeOptions(): AAOptions {
             AAChart()
                 .type(AAChartType.Column)
 //                .margin(arrayOf(16, 12, 16, 12))
-                .scrollablePlotArea(
-                    AAScrollablePlotArea()
-                        .minWidth(1200)
-                        .scrollPositionX(0.4f)
-                )
+//                .scrollablePlotArea(
+//                    AAScrollablePlotArea()
+//                        .minWidth(1200)
+//                        .scrollPositionX(0.4f)
+//                )
         )
         .title(AATitle().text("Weekly Temperature"))
         .subtitle(AASubtitle().text("Scroll to a point then highlight it"))
