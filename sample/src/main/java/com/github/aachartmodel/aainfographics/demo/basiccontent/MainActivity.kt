@@ -536,8 +536,9 @@ class MainActivity : AppCompatActivity() {
             "JS Function For AALegend | 通过带有 JS 函数的自定义 AALegend",
             "JS Function For AAChartEvents---通过 JSFunction 自定义 AAChartEvents 的事件",
             "JS Function For AAOptions---通过 JSFunction 自定义 AAOptions 内容",
-            "Compose Demo (AndroidView)"
+            "Compose 示例"
             )
+
         val listView = findViewById<ExpandableListView>(R.id.exlist_lol)
         val myAdapter =
             MyBaseExpandableListAdapter(groupTitleArr, chartTypeNameArr, this)
@@ -573,7 +574,7 @@ class MainActivity : AppCompatActivity() {
                 12 -> goToJSFunctionForAALegendActivity(chartType,childPosition)
                 13 -> goToJSFunctionForAAChartEventsActivity(chartType,childPosition)
                 14 -> goToJSFunctionForAAOptionsActivity(chartType,childPosition)
-                15 -> goToComposeChartActivity()
+                15 -> goToComposeScrollHighlight()
             }
             Toast.makeText(
                 this@MainActivity,
@@ -724,6 +725,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun goToComposeChartActivity() {
         val intent = Intent(this, com.github.aachartmodel.aainfographics.demo.compose.ComposeChartActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun goToComposeScrollHighlight() {
+        val intent = Intent(this, com.github.aachartmodel.aainfographics.demo.compose.ComposeScrollHighlightActivity::class.java)
         startActivity(intent)
     }
 
