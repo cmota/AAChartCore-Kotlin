@@ -3,7 +3,9 @@ package com.github.aachartmodel.aainfographics.demo.compose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,21 +14,32 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.aachartmodel.aainfographics.aachartcreator.AAChartType
@@ -39,7 +52,10 @@ import com.github.aachartmodel.aainfographics.aaoptionsmodel.AATitle
 import com.github.aachartmodel.aainfographics.aaoptionsmodel.AATooltip
 import com.github.aachartmodel.aainfographics.aaoptionsmodel.AAXAxis
 import com.github.aachartmodel.aainfographics.aaoptionsmodel.AAYAxis
+import kotlinx.coroutines.launch
 import kotlin.math.sin
+
+private const val POINTS_COUNT = 50
 
 class ComposeScrollHighlightActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,10 +70,12 @@ class ComposeScrollHighlightActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScrollHighlightScreen() {
     var pointInput by remember { mutableStateOf(TextFieldValue("12")) }
     var chartView by remember { mutableStateOf<AAChartView?>(null) }
+    var showPicker by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Column(
@@ -83,7 +101,12 @@ private fun ScrollHighlightScreen() {
                 value = pointInput,
                 onValueChange = { pointInput = it },
                 label = { Text("Point index (0-based)") },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                trailingIcon = {
+                    TextButton(onClick = { showPicker = true }) {
+                        Text("选择")
+                    }
+                }
             )
             Spacer(modifier = Modifier.size(12.dp))
             Button(onClick = {
@@ -121,7 +144,6 @@ private fun ScrollHighlightScreen() {
                         android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                         android.view.ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    // 保存引用以便按钮点击时使用
                     chartView = this
                 }
             },
@@ -133,13 +155,116 @@ private fun ScrollHighlightScreen() {
             }
         )
     }
+
+    // 数字选择器 BottomSheet
+    if (showPicker) {
+        NumberPickerBottomSheet(
+            currentValue = pointInput.text.toIntOrNull() ?: 0,
+            range = 0 until POINTS_COUNT,
+            onDismiss = { showPicker = false },
+            onConfirm = { selected ->
+                pointInput = TextFieldValue(selected.toString())
+                showPicker = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NumberPickerBottomSheet(
+    currentValue: Int,
+    range: IntRange,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    var selectedValue by remember { mutableIntStateOf(currentValue.coerceIn(range)) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
+    // 初始滚动到当前值
+    LaunchedEffect(Unit) {
+        listState.scrollToItem(maxOf(0, selectedValue - 2))
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // 标题栏
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("取消")
+                }
+                Text("选择 Point Index", style = MaterialTheme.typography.titleMedium)
+                TextButton(onClick = { onConfirm(selectedValue) }) {
+                    Text("确定")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Picker 列表
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(range.count()) { index ->
+                        val value = range.first + index
+                        val isSelected = value == selectedValue
+                        Text(
+                            text = value.toString(),
+                            style = if (isSelected) {
+                                MaterialTheme.typography.headlineMedium
+                            } else {
+                                MaterialTheme.typography.bodyLarge
+                            },
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedValue = value
+                                    scope.launch {
+                                        listState.animateScrollToItem(maxOf(0, value - 2))
+                                    }
+                                }
+                                .padding(vertical = 12.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
 }
 
 private fun createChartOptions(): AAOptions {
-    val pointsCount = 50
-    val categories = (0 until pointsCount).map { it.toString() }.toTypedArray()
-    val sineData = (0 until pointsCount).map { i ->
-        val rad = (i.toDouble() / pointsCount) * Math.PI * 2
+    val categories = (0 until POINTS_COUNT).map { it.toString() }.toTypedArray()
+    val sineData = (0 until POINTS_COUNT).map { i ->
+        val rad = (i.toDouble() / POINTS_COUNT) * Math.PI * 2
         sin(rad) * 10 + 20
     }.toTypedArray()
 
@@ -175,6 +300,17 @@ private fun AAChartView.scrollToPoint(targetIndex: Int) {
                 return;
             }
 
+            // 先隐藏 tooltip 并清除之前的 hover 状态
+            chart.tooltip.hide();
+            if (chart.hoverPoint) {
+                chart.hoverPoint.setState('');
+                chart.hoverPoint = null;
+            }
+            if (chart.hoverPoints) {
+                chart.hoverPoints.forEach(function(p) { p.setState(''); });
+                chart.hoverPoints = null;
+            }
+
             const pad = (series.closestPointRange || 1) * 0.6;
             const min = point.x - pad;
             const max = point.x + pad;
@@ -188,6 +324,7 @@ private fun AAChartView.scrollToPoint(targetIndex: Int) {
             });
             point.update({ color: '#FF0000' }, false);
             point.setState("hover");
+            chart.hoverPoint = point;
             chart.tooltip.refresh(point);
             chart.redraw();
         })();
