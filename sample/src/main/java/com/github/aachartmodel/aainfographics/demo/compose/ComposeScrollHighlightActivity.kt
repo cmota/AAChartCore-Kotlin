@@ -3,8 +3,12 @@ package com.github.aachartmodel.aainfographics.demo.compose
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,7 +52,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -69,8 +75,59 @@ import kotlin.math.sin
 
 private const val POINTS_COUNT = 50
 private val PrimaryBlue = Color(0xFF2196F3)
+private val PrimaryBlueDark = Color(0xFF1976D2)
 private val LightBlue = Color(0xFFE3F2FD)
 private val AccentOrange = Color(0xFFFF9800)
+private val AccentOrangeDark = Color(0xFFF57C00)
+
+@Composable
+private fun ScaleButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = PrimaryBlue,
+    pressedColor: Color = PrimaryBlueDark,
+    content: @Composable () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (isPressed) 0.92f else 1f, label = "scale")
+    val bgColor = if (isPressed) pressedColor else containerColor
+
+    Button(
+        onClick = onClick,
+        modifier = modifier.scale(scale),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = bgColor),
+        interactionSource = interactionSource
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun ScaleTonalButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = Color(0xFFF0F4F8),
+    pressedColor: Color = Color(0xFFE0E4E8),
+    content: @Composable () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (isPressed) 0.9f else 1f, label = "scale")
+    val bgColor = if (isPressed) pressedColor else containerColor
+
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier.scale(scale),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.filledTonalButtonColors(containerColor = bgColor),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        interactionSource = interactionSource
+    ) {
+        content()
+    }
+}
 
 
 class ComposeScrollHighlightActivity : ComponentActivity() {
@@ -144,11 +201,9 @@ private fun ScrollHighlightScreen() {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = "选择", tint = PrimaryBlue)
                     }
                 }
-                Button(
+                ScaleButton(
                     onClick = { chartView?.scrollToPoint(selectedIndex) },
-                    modifier = Modifier.height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    modifier = Modifier.height(56.dp)
                 ) {
                     Text("滚动高亮", fontWeight = FontWeight.Medium)
                 }
@@ -165,7 +220,14 @@ private fun ScrollHighlightScreen() {
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("快捷跳转", style = MaterialTheme.typography.labelMedium, color = Color(0xFF999999))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("快捷跳转", style = MaterialTheme.typography.labelMedium, color = Color(0xFF999999))
+                    Text("← 左右滑动 →", style = MaterialTheme.typography.labelSmall, color = Color(0xFFBBBBBB))
+                }
                 Spacer(modifier = Modifier.height(12.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val quickIndices = listOf(0, 10, 20, 30, 40, 49)
