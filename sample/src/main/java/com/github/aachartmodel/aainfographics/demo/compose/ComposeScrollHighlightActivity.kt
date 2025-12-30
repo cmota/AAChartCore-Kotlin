@@ -305,7 +305,6 @@ private fun ScrollHighlightScreen() {
                 update = { view ->
                     view.post {
                         view.aa_drawChartWithChartOptions(createChartOptions())
-                        view.scrollToPoint(5)
                     }
                 }
             )
