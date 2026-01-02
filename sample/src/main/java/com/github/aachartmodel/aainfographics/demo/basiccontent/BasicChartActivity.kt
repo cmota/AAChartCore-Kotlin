@@ -35,8 +35,6 @@ import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.github.aachartmodel.aainfographics.aachartcreator.*
-import com.github.aachartmodel.aainfographics.aatools.AAGradientColor
-import com.github.aachartmodel.aainfographics.aatools.AALinearGradientDirection
 import com.github.aachartmodel.aainfographics.demo.R
 import com.github.aachartmodel.aainfographics.demo.chartcomposer.BasicChartComposer
 import com.google.gson.Gson
@@ -83,13 +81,13 @@ open class BasicChartActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeL
     private fun configureTheStyleForDifferentTypeChart(chartType: String, position: Int) {
         if ((chartType == AAChartType.Area.value || chartType == AAChartType.Line.value)
             && (position == 4 || position == 5)) {
-            configureStepAreaChartAndStepLineChartStyle()
+            aaChartModel = BasicChartComposer.configureStepAreaChartAndStepLineChart()
         } else if (chartType == AAChartType.Column.value || chartType == AAChartType.Bar.value) {
-            configureColumnChartAndBarChartStyle()
+            aaChartModel = BasicChartComposer.configureColumnChartAndBarChart()
         } else if (chartType == AAChartType.Area.value || chartType == AAChartType.Areaspline.value) {
-            configureAreaChartAndAreasplineChartStyle(chartType)
+            aaChartModel = BasicChartComposer.configureAreaChartAndAreasplineChartStyle(chartType)
         } else if (chartType == AAChartType.Line.value || chartType == AAChartType.Spline.value) {
-            configureLineChartAndSplineChartStyle(chartType)
+            aaChartModel = BasicChartComposer.configureLineChartAndSplineChartStyle(chartType)
         }
     }
 
@@ -110,101 +108,7 @@ open class BasicChartActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeL
         }
     }
 
-    private fun configureStepAreaChartAndStepLineChartStyle() {
-        val element1 = AASeriesElement()
-            .name("Tokyo")
-            .step(true)
-            .data(arrayOf(149.9, 171.5, 106.4, 129.2, 144.0, 176.0, 135.6, 188.5, 276.4, 214.1, 95.6, 54.4))
 
-        val element2 = AASeriesElement()
-            .name("NewYork")
-            .step(true)
-            .data(arrayOf(83.6, 78.8, 188.5, 93.4, 106.0, 84.5, 105.0, 104.3, 131.2, 153.5, 226.6, 192.3))
-
-        val element3 = AASeriesElement()
-            .name("London")
-            .step(true)
-            .data(arrayOf(48.9, 38.8, 19.3, 41.4, 47.0, 28.3, 59.0, 69.6, 52.4, 65.2, 53.3, 72.2))
-
-        aaChartModel.series(arrayOf(element1, element2, element3))
-    }
-
-    private fun configureColumnChartAndBarChartStyle() {
-        aaChartModel
-            .categories(arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Spe", "Oct", "Nov", "Dec"))
-            .colorsTheme(arrayOf("#fe117c", "#ffc069", "#06caf4", "#7dffc0"))
-            .animationType(AAChartAnimationType.EaseInCubic)
-            .animationDuration(1200)
-    }
-
-    private fun configureAreaChartAndAreasplineChartStyle(chartType:String) {
-        aaChartModel
-            .animationType(AAChartAnimationType.EaseOutQuart)
-            .markerRadius(5f)
-            .markerSymbol(AAChartSymbolType.Circle)
-            .markerSymbolStyle(AAChartSymbolStyleType.InnerBlank)
-
-        if (chartType == AAChartType.Areaspline.value) {
-            val gradientColorDic = AAGradientColor.linearGradient(
-                AALinearGradientDirection.ToBottomRight,
-                "rgba(138,43,226,1)",
-                "rgba(30,144,255,1)" //颜色字符串设置支持十六进制类型和 rgba 类型
-            )
-
-            val element1 = AASeriesElement()
-                .name("Predefined symbol")
-                .data(arrayOf(0.45, 0.43, 0.50, 0.55, 0.58, 0.62, 0.83, 0.39, 0.56, 0.67, 0.50, 0.34, 0.50, 0.67, 0.58, 0.29, 0.46, 0.23, 0.47, 0.46, 0.38, 0.56, 0.48, 0.36))
-
-            val element2 = AASeriesElement()
-                .name("Image symbol")
-                .data(arrayOf(0.38, 0.31, 0.32, 0.32, 0.64, 0.66, 0.86, 0.47, 0.52, 0.75, 0.52, 0.56, 0.54, 0.60, 0.46, 0.63, 0.54, 0.51, 0.58, 0.64, 0.60, 0.45, 0.36, 0.67))
-
-            val element3 = AASeriesElement()
-                .name("Base64 symbol (*)")
-                .data(arrayOf(0.46, 0.32, 0.53, 0.58, 0.86, 0.68, 0.85, 0.73, 0.69, 0.71, 0.91, 0.74, 0.60, 0.50, 0.39, 0.67, 0.55, 0.49, 0.65, 0.45, 0.64, 0.47, 0.63, 0.64))
-
-            val element4 = AASeriesElement()
-                .name("Custom symbol")
-                .data(arrayOf(0.60, 0.51, 0.52, 0.53, 0.64, 0.84, 0.65, 0.68, 0.63, 0.47, 0.72, 0.60, 0.65, 0.74, 0.66, 0.65, 0.71, 0.59, 0.65, 0.77, 0.52, 0.53, 0.58, 0.53))
-
-
-            aaChartModel
-                .animationType(AAChartAnimationType.EaseFrom)//设置图表渲染动画类型为 EaseFrom
-                .series(arrayOf(element1, element2, element3, element4))
-        }
-    }
-
-    private fun configureLineChartAndSplineChartStyle(chartType: String) {
-        aaChartModel
-            .markerSymbolStyle(AAChartSymbolStyleType.BorderBlank)//设置折线连接点样式为:边缘白色
-            .markerRadius(6f)
-        if (chartType == AAChartType.Spline.value) {
-            val element1 = AASeriesElement()
-                .name("Tokyo")
-                .lineWidth(7f)
-                .data(arrayOf(50, 320, 230, 370, 230, 400))
-
-            val element2 = AASeriesElement()
-                .name("Berlin")
-                .lineWidth(7f)
-                .data(arrayOf(80, 390, 210, 340, 240, 350))
-
-            val element3 = AASeriesElement()
-                .name("New York")
-                .lineWidth(7f)
-                .data(arrayOf(100, 370, 180, 280, 260, 300))
-
-            val element4 = AASeriesElement()
-                .name("London")
-                .lineWidth(7f)
-                .data(arrayOf(130, 350, 160, 310, 250, 268))
-
-            aaChartModel
-                .animationType(AAChartAnimationType.SwingFromTo)
-                .series(arrayOf(element1, element2, element3, element4))
-
-        }
-    }
 
 
     private fun convertStringToEnum(chartTypeStr: String): AAChartType {
