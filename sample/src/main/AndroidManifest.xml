@@ -44,6 +44,8 @@
         <activity android:name=".basiccontent.SpecialChartListActivity" />
         <activity android:name=".basiccontent.MixedChartListActivity" />
         <activity android:name=".basiccontent.CustomStyleChartListActivity" />
+        <activity android:name=".compose.ComposeChartActivity" />
+        <activity android:name=".compose.ComposeScrollHighlightActivity" />
     </application>
 
 </manifest>

@@ -8,6 +8,7 @@ import com.github.aachartmodel.aainfographics.demo.R
 import com.github.aachartmodel.aainfographics.demo.chartcomposer.JSFunctionForAALegendComposer.customLegendItemClickEvent
 import com.github.aachartmodel.aainfographics.demo.chartcomposer.JSFunctionForAALegendComposer.disableLegendClickEventForNormalChart
 import com.github.aachartmodel.aainfographics.demo.chartcomposer.JSFunctionForAALegendComposer.disableLegendClickEventForPieChart
+import com.github.aachartmodel.aainfographics.demo.chartcomposer.JSFunctionForAALegendComposer.plotLinesWithVirtualSeriesLegendProxy
 
 class JSFunctionForAALegendActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +26,7 @@ class JSFunctionForAALegendActivity : AppCompatActivity() {
             "disableLegendClickEventForNormalChart" -> disableLegendClickEventForNormalChart() //禁用普通图表的图例点击事件
             "disableLegendClickEventForPieChart" -> disableLegendClickEventForPieChart() //禁用饼图图表的图例点击事件
             "customLegendItemClickEvent" -> customLegendItemClickEvent() //自定义图例点击事件
+            "plotLinesWithVirtualSeriesLegendProxy" -> plotLinesWithVirtualSeriesLegendProxy() //plotLines + 虚拟图例联动示例
             else -> disableLegendClickEventForNormalChart()
         }
     }

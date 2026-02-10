@@ -28,137 +28,137 @@
 package com.github.aachartmodel.aainfographics.demo.additionalcontent
 
 import android.os.Bundle
-import android.os.Handler
-import androidx.appcompat.app.AppCompatActivity
-
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import com.github.aachartmodel.aainfographics.aachartcreator.*
-import com.github.aachartmodel.aainfographics.aachartcreator.AAOptions
 import com.github.aachartmodel.aainfographics.aatools.AAGradientColor
-import com.github.aachartmodel.aainfographics.demo.R
+import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
 
-class OnlyRefreshChartDataActivity : AppCompatActivity() {
-    private var aaChartModel = AAChartModel()
-    private var aaChartView: AAChartView? = null
-    private var updateTimes: Int = 0
+class OnlyRefreshChartDataActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_only_refresh_chart_data)
 
-        setUpAAChartView()
-        repeatUpdateChartData()
-    }
+        val chartType = intent.getStringExtra("chartType") ?: AAChartType.Column.value
 
-
-    fun setUpAAChartView() {
-        aaChartView = findViewById(R.id.AAChartView)
-        aaChartModel = configureAAChartModel()
-        val aaOptions: AAOptions = aaChartModel.aa_toAAOptions()
-        if (aaChartModel.chartType == AAChartType.Column) {
-            aaOptions.plotOptions?.column!!
-                .groupPadding(0f)
-                .pointPadding(0f)
-                .borderRadius(5f)
-        } else if (aaChartModel.chartType == AAChartType.Bar) {
-            aaOptions.plotOptions?.bar!!
-                .groupPadding(0f)
-                .pointPadding(0f)
-                .borderRadius(5f)
-        }
-        aaChartView?.aa_drawChartWithChartOptions(aaOptions)
-    }
-
-    private fun configureAAChartModel(): AAChartModel {
-        val aaChartModel = configureChartBasicContent()
-        aaChartModel.series(this.configureChartSeriesArray() as Array<Any>)
-        return aaChartModel
-    }
-
-    private fun configureChartBasicContent(): AAChartModel {
-        val intent = intent
-        val chartType = intent.getStringExtra("chartType")
-        return AAChartModel.Builder(this)
-            .setChartType(convertStringToEnum(chartType!!))
-            .setXAxisVisible(true)
-            .setYAxisVisible(false)
-            .setTitle("")
-            .setYAxisTitle("摄氏度")
-            .setColorsTheme(arrayOf(
-                    AAGradientColor.Sanguine,
-                    AAGradientColor.DeepSea,
-                    AAGradientColor.NeonGlow,
-                    AAGradientColor.WroughtIron
-                ))
-            .setStacking(AAChartStackingType.Normal)
-            .build()
-    }
-
-    private fun convertStringToEnum(chartTypeStr: String): AAChartType {
-        var chartTypeEnum = AAChartType.Column
-        when (chartTypeStr) {
-            AAChartType.Column.value -> chartTypeEnum = AAChartType.Column
-            AAChartType.Bar.value -> chartTypeEnum = AAChartType.Bar
-            AAChartType.Area.value -> chartTypeEnum = AAChartType.Area
-            AAChartType.Areaspline.value -> chartTypeEnum = AAChartType.Areaspline
-            AAChartType.Line.value -> chartTypeEnum = AAChartType.Line
-            AAChartType.Spline.value -> chartTypeEnum = AAChartType.Spline
-            AAChartType.Scatter.value -> chartTypeEnum = AAChartType.Scatter
-        }
-        return chartTypeEnum
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun configureChartSeriesArray(): Array<AASeriesElement> {
-        val maxRange = 40
-        val numberArr1 = arrayOfNulls<Any>(maxRange)
-        val numberArr2 = arrayOfNulls<Any>(maxRange)
-        var y1: Double
-        var y2: Double
-        val max = 38
-        val min = 1
-        val random = (Math.random() * (max - min) + min).toInt()
-        for (i in 0 until maxRange) {
-            y1 = sin(random * (i * Math.PI / 180)) + i * 2 * 0.01
-            y2 = cos(random * (i * Math.PI / 180)) + i * 3 * 0.01
-            numberArr1[i] = y1
-            numberArr2[i] = y2
-        }
-        return arrayOf(
-            AASeriesElement()
-                .name("2017")
-                .data(numberArr1 as Array<Any>),
-            AASeriesElement()
-                .name("2018")
-                .data(numberArr2 as Array<Any>),
-            AASeriesElement()
-                .name("2019")
-                .data(numberArr1 as Array<Any>),
-            AASeriesElement()
-                .name("2020")
-                .data(numberArr2 as Array<Any>)
-        )
-    }
-
-    private fun repeatUpdateChartData() {
-        val mStartVideoHandler = Handler()
-
-        val mStartVideoRunnable: Runnable = object : Runnable {
-
-            override fun run() {
-                val seriesArr = configureChartSeriesArray()
-                aaChartView!!.aa_onlyRefreshTheChartDataWithChartOptionsSeriesArray(seriesArr)
-
-                mStartVideoHandler.postDelayed(this, 1000)
-                updateTimes += 1
-
-                print("图表数据正在刷新,刷新次数为:$updateTimes")
+        setContent {
+            MaterialTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    OnlyRefreshChartDataScreen(chartType = chartType)
+                }
             }
         }
+    }
+}
 
-        mStartVideoHandler.postDelayed(mStartVideoRunnable, 2000)
+@Composable
+fun OnlyRefreshChartDataScreen(chartType: String) {
+    var chartViewRef by remember { mutableStateOf<AAChartView?>(null) }
+    var updateTimes by remember { mutableIntStateOf(0) }
+
+    val chartTypeEnum = remember { convertStringToEnum(chartType) }
+    val aaOptions = remember { configureAAOptions(chartTypeEnum) }
+
+    // 定时刷新数据
+    LaunchedEffect(Unit) {
+        delay(2000)
+        while (true) {
+            val seriesArr = configureChartSeriesArray()
+            chartViewRef?.aa_onlyRefreshTheChartDataWithChartOptionsSeriesArray(seriesArr)
+            updateTimes++
+            println("图表数据正在刷新,刷新次数为:$updateTimes")
+            delay(1000)
+        }
     }
 
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { ctx ->
+            AAChartView(ctx).apply {
+                chartViewRef = this
+            }
+        },
+        update = { view ->
+            view.post {
+                view.aa_drawChartWithChartOptions(aaOptions)
+            }
+        }
+    )
+}
 
+private fun configureAAOptions(chartType: AAChartType): AAOptions {
+    val aaChartModel = AAChartModel()
+        .chartType(chartType)
+        .xAxisVisible(true)
+        .yAxisVisible(false)
+        .title("")
+        .yAxisTitle("摄氏度")
+        .colorsTheme(arrayOf(
+            AAGradientColor.Sanguine,
+            AAGradientColor.DeepSea,
+            AAGradientColor.NeonGlow,
+            AAGradientColor.WroughtIron
+        ))
+        .stacking(AAChartStackingType.Normal)
+        .series(configureChartSeriesArray() as Array<Any>)
+
+    val aaOptions = aaChartModel.aa_toAAOptions()
+
+    when (chartType) {
+        AAChartType.Column -> {
+            aaOptions.plotOptions?.column
+                ?.groupPadding(0f)
+                ?.pointPadding(0f)
+                ?.borderRadius(5f)
+        }
+        AAChartType.Bar -> {
+            aaOptions.plotOptions?.bar
+                ?.groupPadding(0f)
+                ?.pointPadding(0f)
+                ?.borderRadius(5f)
+        }
+        else -> {}
+    }
+
+    return aaOptions
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun configureChartSeriesArray(): Array<AASeriesElement> {
+    val maxRange = 40
+    val numberArr1 = arrayOfNulls<Any>(maxRange)
+    val numberArr2 = arrayOfNulls<Any>(maxRange)
+
+    val random = (Math.random() * 37 + 1).toInt()
+
+    for (i in 0 until maxRange) {
+        numberArr1[i] = sin(random * (i * Math.PI / 180)) + i * 2 * 0.01
+        numberArr2[i] = cos(random * (i * Math.PI / 180)) + i * 3 * 0.01
+    }
+
+    return arrayOf(
+        AASeriesElement().name("2017").data(numberArr1 as Array<Any>),
+        AASeriesElement().name("2018").data(numberArr2 as Array<Any>),
+        AASeriesElement().name("2019").data(numberArr1 as Array<Any>),
+        AASeriesElement().name("2020").data(numberArr2 as Array<Any>)
+    )
+}
+
+private fun convertStringToEnum(chartTypeStr: String): AAChartType = when (chartTypeStr) {
+    AAChartType.Column.value -> AAChartType.Column
+    AAChartType.Bar.value -> AAChartType.Bar
+    AAChartType.Area.value -> AAChartType.Area
+    AAChartType.Areaspline.value -> AAChartType.Areaspline
+    AAChartType.Line.value -> AAChartType.Line
+    AAChartType.Spline.value -> AAChartType.Spline
+    AAChartType.Scatter.value -> AAChartType.Scatter
+    else -> AAChartType.Column
 }

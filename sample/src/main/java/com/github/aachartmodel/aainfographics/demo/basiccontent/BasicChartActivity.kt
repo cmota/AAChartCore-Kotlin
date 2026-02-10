@@ -28,286 +28,311 @@
 package com.github.aachartmodel.aainfographics.demo.basiccontent
 
 import android.os.Bundle
-import android.view.View
-import android.widget.CompoundButton
-import android.widget.RadioGroup
-import android.widget.Switch
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.github.aachartmodel.aainfographics.aachartcreator.*
-import com.github.aachartmodel.aainfographics.aatools.AAGradientColor
-import com.github.aachartmodel.aainfographics.aatools.AALinearGradientDirection
-import com.github.aachartmodel.aainfographics.demo.R
+import com.github.aachartmodel.aainfographics.aaoptionsmodel.*
 import com.github.aachartmodel.aainfographics.demo.chartcomposer.BasicChartComposer
-import com.google.gson.Gson
 
-open class BasicChartActivity : AppCompatActivity(), RadioGroup.OnCheckedChangeListener,
-    CompoundButton.OnCheckedChangeListener, AAChartView.AAChartViewCallBack {
+open class BasicChartActivity : ComponentActivity() {
 
-    var aaChartModel = AAChartModel()
-    var aaChartView: AAChartView? = null
-    var chartType: String = ""
+    protected open val useAdvancedUpdating: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_basic_chart)
 
-        setUpAAChartView()
-        setUpRadioButtonsAndSwitches()
-    }
-
-    private fun setUpAAChartView() {
-        aaChartView = findViewById(R.id.AAChartView)
-        aaChartView?.setBackgroundColor(0)
-        aaChartView?.callBack = this
-        aaChartModel = configureAAChartModel()
-        aaChartView?.aa_drawChartWithChartModel(aaChartModel)
-
-    }
-
-
-    private fun configureAAChartModel(): AAChartModel {
-        val intent = intent
-        chartType = intent.getStringExtra("chartType").toString()
+        val chartType = intent.getStringExtra("chartType") ?: AAChartType.Column.value
         val position = intent.getIntExtra("position", 0)
-        aaChartModel = BasicChartComposer.configureAreaChart()
-        val chartTypeEnum = convertStringToEnum(chartType)
-        aaChartModel.chartType(chartTypeEnum)
 
-        configureTheStyleForDifferentTypeChart(chartType,position)
-        configureViewsVisibility(chartType)
-
-        return aaChartModel
-    }
-
-    private fun configureTheStyleForDifferentTypeChart(chartType: String, position: Int) {
-        if ((chartType == AAChartType.Area.value || chartType == AAChartType.Line.value)
-            && (position == 4 || position == 5)) {
-            configureStepAreaChartAndStepLineChartStyle()
-        } else if (chartType == AAChartType.Column.value || chartType == AAChartType.Bar.value) {
-            configureColumnChartAndBarChartStyle()
-        } else if (chartType == AAChartType.Area.value || chartType == AAChartType.Areaspline.value) {
-            configureAreaChartAndAreasplineChartStyle(chartType)
-        } else if (chartType == AAChartType.Line.value || chartType == AAChartType.Spline.value) {
-            configureLineChartAndSplineChartStyle(chartType)
-        }
-    }
-
-    private fun configureViewsVisibility(chartType: String) {
-        val squareCornersRadio: RadioGroup = findViewById(R.id.cornerStyleTypeRadioGroup)
-        val markerSymbolTypeRadioGroup: RadioGroup = findViewById(R.id.markerSymbolTypeRadioGroup)
-        if (chartType == AAChartType.Column.value || chartType == AAChartType.Bar.value) {
-            squareCornersRadio.visibility = View.VISIBLE
-            markerSymbolTypeRadioGroup.visibility = View.GONE
-
-            val markerHideSwitch: Switch = findViewById(R.id.markerHideSwitch)
-            markerHideSwitch.visibility = View.GONE
-            val markerHideTextView: TextView = findViewById(R.id.markerHideTextView)
-            markerHideTextView.visibility = View.GONE
-        } else {
-            squareCornersRadio.visibility = View.GONE
-            markerSymbolTypeRadioGroup.visibility = View.VISIBLE
-        }
-    }
-
-    private fun configureStepAreaChartAndStepLineChartStyle() {
-        val element1 = AASeriesElement()
-            .name("Tokyo")
-            .step(true)
-            .data(arrayOf(149.9, 171.5, 106.4, 129.2, 144.0, 176.0, 135.6, 188.5, 276.4, 214.1, 95.6, 54.4))
-
-        val element2 = AASeriesElement()
-            .name("NewYork")
-            .step(true)
-            .data(arrayOf(83.6, 78.8, 188.5, 93.4, 106.0, 84.5, 105.0, 104.3, 131.2, 153.5, 226.6, 192.3))
-
-        val element3 = AASeriesElement()
-            .name("London")
-            .step(true)
-            .data(arrayOf(48.9, 38.8, 19.3, 41.4, 47.0, 28.3, 59.0, 69.6, 52.4, 65.2, 53.3, 72.2))
-
-        aaChartModel.series(arrayOf(element1, element2, element3))
-    }
-
-    private fun configureColumnChartAndBarChartStyle() {
-        aaChartModel
-            .categories(arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Spe", "Oct", "Nov", "Dec"))
-            .colorsTheme(arrayOf("#fe117c", "#ffc069", "#06caf4", "#7dffc0"))
-            .animationType(AAChartAnimationType.EaseInCubic)
-            .animationDuration(1200)
-    }
-
-    private fun configureAreaChartAndAreasplineChartStyle(chartType:String) {
-        aaChartModel
-            .animationType(AAChartAnimationType.EaseOutQuart)
-            .markerRadius(5f)
-            .markerSymbol(AAChartSymbolType.Circle)
-            .markerSymbolStyle(AAChartSymbolStyleType.InnerBlank)
-
-        if (chartType == AAChartType.Areaspline.value) {
-            val gradientColorDic = AAGradientColor.linearGradient(
-                AALinearGradientDirection.ToBottomRight,
-                "rgba(138,43,226,1)",
-                "rgba(30,144,255,1)" //颜色字符串设置支持十六进制类型和 rgba 类型
-            )
-
-            val element1 = AASeriesElement()
-                .name("Predefined symbol")
-                .data(arrayOf(0.45, 0.43, 0.50, 0.55, 0.58, 0.62, 0.83, 0.39, 0.56, 0.67, 0.50, 0.34, 0.50, 0.67, 0.58, 0.29, 0.46, 0.23, 0.47, 0.46, 0.38, 0.56, 0.48, 0.36))
-
-            val element2 = AASeriesElement()
-                .name("Image symbol")
-                .data(arrayOf(0.38, 0.31, 0.32, 0.32, 0.64, 0.66, 0.86, 0.47, 0.52, 0.75, 0.52, 0.56, 0.54, 0.60, 0.46, 0.63, 0.54, 0.51, 0.58, 0.64, 0.60, 0.45, 0.36, 0.67))
-
-            val element3 = AASeriesElement()
-                .name("Base64 symbol (*)")
-                .data(arrayOf(0.46, 0.32, 0.53, 0.58, 0.86, 0.68, 0.85, 0.73, 0.69, 0.71, 0.91, 0.74, 0.60, 0.50, 0.39, 0.67, 0.55, 0.49, 0.65, 0.45, 0.64, 0.47, 0.63, 0.64))
-
-            val element4 = AASeriesElement()
-                .name("Custom symbol")
-                .data(arrayOf(0.60, 0.51, 0.52, 0.53, 0.64, 0.84, 0.65, 0.68, 0.63, 0.47, 0.72, 0.60, 0.65, 0.74, 0.66, 0.65, 0.71, 0.59, 0.65, 0.77, 0.52, 0.53, 0.58, 0.53))
-
-
-            aaChartModel
-                .animationType(AAChartAnimationType.EaseFrom)//设置图表渲染动画类型为 EaseFrom
-                .series(arrayOf(element1, element2, element3, element4))
-        }
-    }
-
-    private fun configureLineChartAndSplineChartStyle(chartType: String) {
-        aaChartModel
-            .markerSymbolStyle(AAChartSymbolStyleType.BorderBlank)//设置折线连接点样式为:边缘白色
-            .markerRadius(6f)
-        if (chartType == AAChartType.Spline.value) {
-            val element1 = AASeriesElement()
-                .name("Tokyo")
-                .lineWidth(7f)
-                .data(arrayOf(50, 320, 230, 370, 230, 400))
-
-            val element2 = AASeriesElement()
-                .name("Berlin")
-                .lineWidth(7f)
-                .data(arrayOf(80, 390, 210, 340, 240, 350))
-
-            val element3 = AASeriesElement()
-                .name("New York")
-                .lineWidth(7f)
-                .data(arrayOf(100, 370, 180, 280, 260, 300))
-
-            val element4 = AASeriesElement()
-                .name("London")
-                .lineWidth(7f)
-                .data(arrayOf(130, 350, 160, 310, 250, 268))
-
-            aaChartModel
-                .animationType(AAChartAnimationType.SwingFromTo)
-                .series(arrayOf(element1, element2, element3, element4))
-
-        }
-    }
-
-
-    private fun convertStringToEnum(chartTypeStr: String): AAChartType {
-        var chartTypeEnum = AAChartType.Column
-        when (chartTypeStr) {
-            AAChartType.Column.value -> chartTypeEnum = AAChartType.Column
-            AAChartType.Bar.value -> chartTypeEnum = AAChartType.Bar
-            AAChartType.Area.value -> chartTypeEnum = AAChartType.Area
-            AAChartType.Areaspline.value -> chartTypeEnum = AAChartType.Areaspline
-            AAChartType.Line.value -> chartTypeEnum = AAChartType.Line
-            AAChartType.Spline.value -> chartTypeEnum = AAChartType.Spline
-        }
-        return chartTypeEnum
-    }
-
-
-    private fun setUpRadioButtonsAndSwitches() {
-        val stackingTypeRadioGroup = findViewById<RadioGroup>(R.id.stackingTypeRadioGroup)
-        stackingTypeRadioGroup.setOnCheckedChangeListener(this)
-
-        val cornerStyleTypeRadioGroup = findViewById<RadioGroup>(R.id.cornerStyleTypeRadioGroup)
-        cornerStyleTypeRadioGroup.setOnCheckedChangeListener(this)
-
-        val markerSymbolTypeRadioGroup: RadioGroup = findViewById(R.id.markerSymbolTypeRadioGroup)
-        markerSymbolTypeRadioGroup.setOnCheckedChangeListener(this)
-
-        val boolSwitch1: Switch = findViewById(R.id.xReversedSwitch)
-        boolSwitch1.setOnCheckedChangeListener(this)
-
-        val boolSwitch2: Switch = findViewById(R.id.yReversedSwitch)
-        boolSwitch2.setOnCheckedChangeListener(this)
-
-        val boolSwitch3: Switch = findViewById(R.id.polarSwitch)
-        boolSwitch3.setOnCheckedChangeListener(this)
-
-        val boolSwitch4: Switch = findViewById(R.id.xInvertedSwitch)
-        boolSwitch4.setOnCheckedChangeListener(this)
-
-        val boolSwitch5: Switch = findViewById(R.id.dataShowSwitch)
-        boolSwitch5.setOnCheckedChangeListener(this)
-
-        val boolSwitch6: Switch = findViewById(R.id.markerHideSwitch)
-        boolSwitch6.setOnCheckedChangeListener(this)
-    }
-
-    /**
-     * 重写的状态改变的事件的方法
-     * @param group 单选组合框
-     * @param checkedId 其中的每个RadioButton的Id
-     */
-    override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
-        if (group.id == R.id.stackingTypeRadioGroup) {
-            when (group.checkedRadioButtonId) {
-                R.id.noStackingRadio -> aaChartModel.stacking(AAChartStackingType.False)
-                R.id.normalStackingRadio -> aaChartModel.stacking(AAChartStackingType.Normal)
-                R.id.percentStackingRadio -> aaChartModel.stacking(AAChartStackingType.Percent)
-            }
-        } else {
-            if (aaChartModel.chartType == AAChartType.Bar
-                || aaChartModel.chartType == AAChartType.Column
-            ) {
-                when (group.checkedRadioButtonId) {
-                    R.id.squareCornersRadio -> aaChartModel.borderRadius(1f)
-                    R.id.roundedCornersRadio -> aaChartModel.borderRadius(10f)
-                    R.id.wedgeCornersRadio -> aaChartModel.borderRadius(1000f)
-                }
-            } else {
-                when (group.checkedRadioButtonId) {
-                    R.id.circleSymbolRadio -> aaChartModel.markerSymbol(AAChartSymbolType.Circle)
-                    R.id.squareSymbolRadio -> aaChartModel.markerSymbol(AAChartSymbolType.Square)
-                    R.id.diamondSymbolRadio -> aaChartModel.markerSymbol(AAChartSymbolType.Diamond)
-                    R.id.triangleSymbolRadio -> aaChartModel.markerSymbol(AAChartSymbolType.Triangle)
-                    R.id.triangleDownSymbolRadio -> aaChartModel.markerSymbol(AAChartSymbolType.TriangleDown)
+        setContent {
+            MaterialTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    BasicChartScreen(
+                        chartType = chartType,
+                        position = position,
+                        useAdvancedUpdating = useAdvancedUpdating
+                    )
                 }
             }
         }
-
-        aaChartView?.aa_refreshChartWithChartModel(aaChartModel)
-    }
-
-    override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-        when (buttonView.id) {
-            R.id.xReversedSwitch -> aaChartModel.xAxisReversed(isChecked)
-            R.id.yReversedSwitch -> aaChartModel.yAxisReversed(isChecked)
-            R.id.xInvertedSwitch -> aaChartModel.inverted(isChecked)
-            R.id.polarSwitch -> aaChartModel.polar(isChecked)
-            R.id.dataShowSwitch -> aaChartModel.dataLabelsEnabled(isChecked)
-            R.id.markerHideSwitch -> aaChartModel.markerRadius(if (isChecked) 0f else 6f)
-        }
-
-        aaChartView?.aa_refreshChartWithChartModel(aaChartModel)
-    }
-
-    override fun chartViewDidFinishLoad(aaChartView: AAChartView) {
-        println("🔥图表加载完成回调方法 ")
-    }
-
-    override fun chartViewMoveOverEventMessage(
-        aaChartView: AAChartView,
-        messageModel: AAMoveOverEventMessageModel
-    ) {
-        val gson = Gson()
-        println("🚀move over event message " + gson.toJson(messageModel))
     }
 }
 
+@Composable
+fun BasicChartScreen(
+    chartType: String,
+    position: Int,
+    useAdvancedUpdating: Boolean = false
+) {
+    val context = LocalContext.current
+    val initialModel = remember { configureAAChartModel(chartType, position) }
+    var aaChartModel by remember { mutableStateOf(initialModel) }
+    var chartViewRef by remember { mutableStateOf<AAChartView?>(null) }
+
+    // Stacking type state
+    var stackingType by remember { mutableStateOf(AAChartStackingType.False) }
+
+    // Corner style state (for Column/Bar)
+    var borderRadius by remember { mutableFloatStateOf(1f) }
+
+    // Marker symbol state (for other chart types)
+    var markerSymbol by remember { mutableStateOf(AAChartSymbolType.Circle) }
+
+    // Switch states
+    var xReversed by remember { mutableStateOf(false) }
+    var yReversed by remember { mutableStateOf(false) }
+    var polar by remember { mutableStateOf(false) }
+    var inverted by remember { mutableStateOf(false) }
+    var dataLabelsEnabled by remember { mutableStateOf(false) }
+    var markerHidden by remember { mutableStateOf(false) }
+
+    val isBarOrColumn = chartType == AAChartType.Column.value || chartType == AAChartType.Bar.value
+
+    // Helper function to update chart
+    fun updateChart(options: Any? = null) {
+        if (useAdvancedUpdating && options != null) {
+            chartViewRef?.aa_updateChartWithOptions(options, true)
+        } else {
+            chartViewRef?.aa_refreshChartWithChartModel(aaChartModel)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Chart View
+        AndroidView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            factory = { ctx ->
+                AAChartView(ctx).apply {
+                    setBackgroundColor(0)
+                    layoutParams = android.view.ViewGroup.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    chartViewRef = this
+                }
+            },
+            update = { view ->
+                view.post {
+                    view.aa_drawChartWithChartModel(aaChartModel)
+                }
+            }
+        )
+
+        // Controls
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            // Stacking Type
+            Text("Stacking Type", style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                StackingOption.entries.forEach { option ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = stackingType == option.type,
+                            onClick = {
+                                stackingType = option.type
+                                aaChartModel = aaChartModel.stacking(stackingType)
+                                val opts = AAPlotOptions().series(AASeries().stacking(stackingType))
+                                updateChart(opts)
+                            }
+                        )
+                        Text(option.label, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Corner Style (for Column/Bar) or Marker Symbol (for others)
+            if (isBarOrColumn) {
+                Text("Corner Style", style = MaterialTheme.typography.titleSmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CornerOption.entries.forEach { option ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = borderRadius == option.radius,
+                                onClick = {
+                                    borderRadius = option.radius
+                                    aaChartModel = aaChartModel.borderRadius(borderRadius)
+                                    val opts = if (chartType == AAChartType.Column.value) {
+                                        AAPlotOptions().column(AAColumn().borderRadius(borderRadius))
+                                    } else {
+                                        AAPlotOptions().bar(AABar().borderRadius(borderRadius))
+                                    }
+                                    updateChart(opts)
+                                }
+                            )
+                            Text(option.label, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            } else {
+                Text("Marker Symbol", style = MaterialTheme.typography.titleSmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    MarkerOption.entries.forEach { option ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = markerSymbol == option.symbol,
+                                onClick = {
+                                    markerSymbol = option.symbol
+                                    aaChartModel = aaChartModel.markerSymbol(markerSymbol)
+                                    val opts = AAPlotOptions().series(AASeries().marker(AAMarker().symbol(markerSymbol.value)))
+                                    updateChart(opts)
+                                }
+                            )
+                            Text(option.label, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Switches
+            SwitchRow("X Reversed", xReversed) {
+                xReversed = it
+                aaChartModel = aaChartModel.xAxisReversed(it)
+                updateChart(AAXAxis().reversed(it))
+            }
+            SwitchRow("Y Reversed", yReversed) {
+                yReversed = it
+                aaChartModel = aaChartModel.yAxisReversed(it)
+                updateChart(AAYAxis().reversed(it))
+            }
+            SwitchRow("Polar", polar) {
+                polar = it
+                aaChartModel = aaChartModel.polar(it)
+                if (useAdvancedUpdating) {
+                    val aaChart = AAChart().polar(it).inverted(inverted)
+                    val options: Any = when (chartType) {
+                        AAChartType.Column.value -> {
+                            val p = if (it) 0f else 0.1f
+                            val g = if (it) 0.005f else 0.2f
+                            AAOptions().chart(aaChart).plotOptions(AAPlotOptions().column(AAColumn().pointPadding(p).groupPadding(g)))
+                        }
+                        AAChartType.Bar.value -> {
+                            val p = if (it) 0f else 0.1f
+                            val g = if (it) 0.005f else 0.2f
+                            AAOptions().chart(aaChart).plotOptions(AAPlotOptions().bar(AABar().pointPadding(p).groupPadding(g)))
+                        }
+                        else -> aaChart
+                    }
+                    updateChart(options)
+                } else {
+                    updateChart()
+                }
+            }
+            SwitchRow("Inverted", inverted) {
+                inverted = it
+                aaChartModel = aaChartModel.inverted(it)
+                if (useAdvancedUpdating && chartType == AAChartType.Bar.value) {
+                    Toast.makeText(context, "⚠️ inverted is useless for Bar Chart", Toast.LENGTH_SHORT).show()
+                }
+                updateChart(AAChart().inverted(it).polar(polar))
+            }
+            SwitchRow("Data Labels", dataLabelsEnabled) {
+                dataLabelsEnabled = it
+                aaChartModel = aaChartModel.dataLabelsEnabled(it)
+                val opts = AAPlotOptions().series(AASeries().dataLabels(AADataLabels().enabled(it)))
+                updateChart(opts)
+            }
+            if (!isBarOrColumn) {
+                SwitchRow("Hide Marker", markerHidden) {
+                    markerHidden = it
+                    aaChartModel = aaChartModel.markerRadius(if (it) 0f else 6f)
+                    val marker = if (it) AAMarker().enabled(false) else AAMarker().enabled(true).radius(6f)
+                    val opts = AAPlotOptions().series(AASeries().marker(marker))
+                    updateChart(opts)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+private fun configureAAChartModel(chartType: String, position: Int): AAChartModel {
+    val chartTypeEnum = convertStringToEnum(chartType)
+
+    return when {
+        (chartType == AAChartType.Area.value || chartType == AAChartType.Line.value) && (position == 4 || position == 5) ->
+            BasicChartComposer.configureStepAreaChartAndStepLineChart().chartType(chartTypeEnum)
+        chartType == AAChartType.Column.value || chartType == AAChartType.Bar.value ->
+            BasicChartComposer.configureColumnChartAndBarChart().chartType(chartTypeEnum)
+        chartType == AAChartType.Area.value || chartType == AAChartType.Areaspline.value ->
+            BasicChartComposer.configureAreaChartAndAreasplineChartStyle(chartType).chartType(chartTypeEnum)
+        chartType == AAChartType.Line.value || chartType == AAChartType.Spline.value ->
+            BasicChartComposer.configureLineChartAndSplineChartStyle(chartType).chartType(chartTypeEnum)
+        else ->
+            BasicChartComposer.configureAreaChart().chartType(chartTypeEnum)
+    }
+}
+
+private fun convertStringToEnum(chartTypeStr: String): AAChartType {
+    return when (chartTypeStr) {
+        AAChartType.Column.value -> AAChartType.Column
+        AAChartType.Bar.value -> AAChartType.Bar
+        AAChartType.Area.value -> AAChartType.Area
+        AAChartType.Areaspline.value -> AAChartType.Areaspline
+        AAChartType.Line.value -> AAChartType.Line
+        AAChartType.Spline.value -> AAChartType.Spline
+        else -> AAChartType.Column
+    }
+}
+
+private enum class StackingOption(val label: String, val type: AAChartStackingType) {
+    None("None", AAChartStackingType.False),
+    Normal("Normal", AAChartStackingType.Normal),
+    Percent("Percent", AAChartStackingType.Percent)
+}
+
+private enum class CornerOption(val label: String, val radius: Float) {
+    Square("Square", 1f),
+    Rounded("Rounded", 10f),
+    Wedge("Wedge", 1000f)
+}
+
+private enum class MarkerOption(val label: String, val symbol: AAChartSymbolType) {
+    Circle("●", AAChartSymbolType.Circle),
+    Square("■", AAChartSymbolType.Square),
+    Diamond("◆", AAChartSymbolType.Diamond),
+    Triangle("▲", AAChartSymbolType.Triangle),
+    TriangleDown("▼", AAChartSymbolType.TriangleDown)
+}

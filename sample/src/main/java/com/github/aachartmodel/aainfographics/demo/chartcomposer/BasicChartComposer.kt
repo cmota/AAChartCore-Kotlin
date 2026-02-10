@@ -19,6 +19,20 @@ object BasicChartComposer {
             .touchEventEnabled(true)
     }
 
+    fun simpleSplineModel(): AAChartModel {
+        val element = AASeriesElement()
+            .name("Demo Spline")
+            .data(arrayOf<Any>(50, 120, 90, 160, 140, 200))
+        return configureBasicOptions()
+            .backgroundColor("#FFFFFF")
+            .chartType(AAChartType.Spline)
+            .categories(arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun"))
+            .markerRadius(5)
+            .markerSymbol(AAChartSymbolType.Circle)
+            .animationType(AAChartAnimationType.EaseInOutQuart)
+            .series(arrayOf(element))
+    }
+
     fun configureAreaChart(): AAChartModel {
         val element1: AASeriesElement = AASeriesElement()
             .name("Tokyo")
