@@ -43,7 +43,7 @@ open class AASeriesElement {
     var type: String? = null
     var allowPointSelect: Boolean? = null
     var name: String? = null
-    var data: Array<Any?>? = null
+    var data: Array<Any>? = null
     var lineWidth //折线图、曲线图、直方折线图、折线填充图、曲线填充图、直方折线填充图的线条宽度
             : Number? = null
     var borderColor //The border color, It is only valid for column, bar, pie, columnrange, pyramid and funnel chart types
@@ -102,8 +102,8 @@ open class AASeriesElement {
         return this
     }
 
-    fun data(prop: Array<Any>): AASeriesElement {
-        data = Array(prop.size) { index -> prop[index] }
+    fun data(prop: Array<Any>?): AASeriesElement {
+        data = prop
         return this
     }
 

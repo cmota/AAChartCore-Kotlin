@@ -43,7 +43,8 @@ object JSFunctionForAALegendComposer {
         }
 
         fun nullableData(prop: Array<out Any?>): LegendProxySeriesElement {
-            data = Array(prop.size) { index -> prop[index] }
+            @Suppress("UNCHECKED_CAST")
+            data = prop as Array<Any>
             return this
         }
 
