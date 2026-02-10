@@ -9,6 +9,34 @@ import com.google.gson.Gson
 
 object JSFunctionForAALegendComposer {
 
+    private class LegendProxySeriesElement : AASeriesElement() {
+        var customPlotLineId: String? = null
+        var events: Map<String, String>? = null
+
+        fun customPlotLineId(prop: String): LegendProxySeriesElement {
+            customPlotLineId = prop
+            return this
+        }
+
+        fun events(showEventJS: String, hideEventJS: String): LegendProxySeriesElement {
+            events = linkedMapOf(
+                "show" to showEventJS,
+                "hide" to hideEventJS,
+            )
+            return this
+        }
+
+        fun nullableData(prop: Array<out Any?>): LegendProxySeriesElement {
+            data = Array(prop.size) { index -> prop[index] }
+            return this
+        }
+
+        fun dataWithNull(prop: Array<Any?>): LegendProxySeriesElement {
+            nullableData(prop)
+            return this
+        }
+    }
+
     fun disableLegendClickEventForNormalChart(): AAOptions {
         val element1 = AASeriesElement()
             .name("Predefined symbol")
@@ -436,23 +464,21 @@ object JSFunctionForAALegendComposer {
 
         val proxySeriesArr: Array<Any> = plotLineConfigArr.map { config ->
             val plotLineId = config["id"] as String
-            linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-$plotLineId",
-                "type" to AAChartType.Line.value,
-                "name" to (config["legendName"] as String),
-                "data" to arrayOf<Any?>(null),
-                "color" to (config["color"] as String),
-                "dashStyle" to (config["dashStyle"] as String),
-                "lineWidth" to 2,
-                "showInLegend" to true,
-                "enableMouseTracking" to false,
-                "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to plotLineId,
-                "events" to linkedMapOf(
-                    "show" to proxyShowEventJS,
-                    "hide" to proxyHideEventJS,
-                ),
-            )
+            val proxySeries = LegendProxySeriesElement().apply {
+                id = "legend-proxy-$plotLineId"
+                type = AAChartType.Line.value
+                name = config["legendName"] as String
+                nullableData(arrayOf<Any?>(null))
+                color = config["color"] as String
+                dashStyle = config["dashStyle"] as String
+                lineWidth = 2
+                showInLegend = true
+                enableMouseTracking = false
+                marker = AAMarker().enabled(false)
+                customPlotLineId(plotLineId)
+                events(proxyShowEventJS, proxyHideEventJS)
+            }
+            proxySeries
         }.toTypedArray()
 
         val aaOptions = AAOptions()

@@ -38,53 +38,53 @@ import com.github.aachartmodel.aainfographics.aaoptionsmodel.AAZonesElement
  */
 
 
-class AASeriesElement {
+open class AASeriesElement {
 
-    private var type: String? = null
-    private var allowPointSelect: Boolean? = null
-    private var name: String? = null
-    private var data: Array<Any>? = null
-    private var lineWidth //折线图、曲线图、直方折线图、折线填充图、曲线填充图、直方折线填充图的线条宽度
+    var type: String? = null
+    var allowPointSelect: Boolean? = null
+    var name: String? = null
+    var data: Array<Any?>? = null
+    var lineWidth //折线图、曲线图、直方折线图、折线填充图、曲线填充图、直方折线填充图的线条宽度
             : Number? = null
-    private var borderColor //The border color, It is only valid for column, bar, pie, columnrange, pyramid and funnel chart types
+    var borderColor //The border color, It is only valid for column, bar, pie, columnrange, pyramid and funnel chart types
             : String? = null
-    private var borderWidth //The border width, It is only valid for column, bar, pie, columnrange, pyramid and funnel chart types
+    var borderWidth //The border width, It is only valid for column, bar, pie, columnrange, pyramid and funnel chart types
             : Number? = null
-    private var borderRadius //The corner radius of the border surrounding each column or bar.
+    var borderRadius //The corner radius of the border surrounding each column or bar.
             : Number? = null
-    private var borderRadiusTopLeft: Any? = null
-    private var borderRadiusTopRight: Any? = null
-    private var borderRadiusBottomLeft: Any? = null
-    private var borderRadiusBottomRight: Any? = null
-    private var color: Any? = null
-    private var fillColor: Any? = null
-    private var fillOpacity //折线填充图、曲线填充图、直方折线填充图等填充图类型的填充颜色透明度
+    var borderRadiusTopLeft: Any? = null
+    var borderRadiusTopRight: Any? = null
+    var borderRadiusBottomLeft: Any? = null
+    var borderRadiusBottomRight: Any? = null
+    var color: Any? = null
+    var fillColor: Any? = null
+    var fillOpacity //折线填充图、曲线填充图、直方折线填充图等填充图类型的填充颜色透明度
             : Float? = null
-    private var threshold //The threshold, also called zero level or base level. For line type series this is only used in conjunction with negativeColor. default：0.
+    var threshold //The threshold, also called zero level or base level. For line type series this is only used in conjunction with negativeColor. default：0.
             : Number? = null
-    private var negativeColor // The color for the parts of the graph or points that are below the threshold
+    var negativeColor // The color for the parts of the graph or points that are below the threshold
             : String? = null
-    private var negativeFillColor: Any? = null
-    private var size: Any? = null
-    private var innerSize: Any? = null
-    private var dashStyle: String? = null
-    private var yAxis: Int? = null
-    private var dataLabels: AADataLabels? = null
-    private var marker: AAMarker? = null
-    private var step: Any? = null
-    private var states: Any? = null
-    private var colorByPoint: Boolean? = null
-    private var zIndex: Int? = null
-    private var zones: Array<AAZonesElement>? = null
-    private var zoneAxis: String? = null
-    private var shadow: AAShadow? = null
-    private var stack: String? = null
-    private var tooltip: AATooltip? = null
-    private var showInLegend: Boolean? = null
-    private var enableMouseTracking: Boolean? = null
-    private var reversed: Boolean? = null
-    private var id: String? = null
-    private var connectNulls: Boolean? = null
+    var negativeFillColor: Any? = null
+    var size: Any? = null
+    var innerSize: Any? = null
+    var dashStyle: String? = null
+    var yAxis: Int? = null
+    var dataLabels: AADataLabels? = null
+    var marker: AAMarker? = null
+    var step: Any? = null
+    var states: Any? = null
+    var colorByPoint: Boolean? = null
+    var zIndex: Int? = null
+    var zones: Array<AAZonesElement>? = null
+    var zoneAxis: String? = null
+    var shadow: AAShadow? = null
+    var stack: String? = null
+    var tooltip: AATooltip? = null
+    var showInLegend: Boolean? = null
+    var enableMouseTracking: Boolean? = null
+    var reversed: Boolean? = null
+    var id: String? = null
+    var connectNulls: Boolean? = null
 
 
     fun type(prop: AAChartType?): AASeriesElement {
@@ -103,7 +103,7 @@ class AASeriesElement {
     }
 
     fun data(prop: Array<Any>): AASeriesElement {
-        data = prop
+        data = Array(prop.size) { index -> prop[index] }
         return this
     }
 
@@ -351,4 +351,3 @@ class AAShadow {
     }
 
 }
-
