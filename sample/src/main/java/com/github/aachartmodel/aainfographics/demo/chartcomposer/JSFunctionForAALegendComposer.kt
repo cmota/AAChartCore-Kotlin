@@ -5,6 +5,7 @@ import com.github.aachartmodel.aainfographics.aaoptionsmodel.*
 import com.github.aachartmodel.aainfographics.aatools.AAColor
 import com.github.aachartmodel.aainfographics.aatools.AAGradientColor
 import com.github.aachartmodel.aainfographics.aatools.AAJSStringPurer
+import com.google.gson.Gson
 
 object JSFunctionForAALegendComposer {
 
@@ -249,24 +250,107 @@ object JSFunctionForAALegendComposer {
             ),
         )
 
+        val plotLineConfigArr: Array<Map<String, Any>> = arrayOf(
+            linkedMapOf(
+                "id" to "revenue-fixed-high",
+                "value" to 900000,
+                "color" to "#f39c12",
+                "dashStyle" to "Solid",
+                "legendName" to "营收固定900000",
+                "labelText" to "营业额固定定值900000.0",
+            ),
+            linkedMapOf(
+                "id" to "revenue-avg",
+                "value" to 590161.68,
+                "color" to "#ef9cd3",
+                "dashStyle" to "Solid",
+                "legendName" to "营收平均值",
+                "labelText" to "营业额平均值590161.68",
+            ),
+            linkedMapOf(
+                "id" to "revenue-fixed-mid",
+                "value" to 500000,
+                "color" to "#d6b33e",
+                "dashStyle" to "Solid",
+                "legendName" to "营收固定500000",
+                "labelText" to "营业额固定定值500000.0",
+            ),
+            linkedMapOf(
+                "id" to "net-fixed",
+                "value" to 9733.36,
+                "color" to "#2ec7ff",
+                "dashStyle" to "Solid",
+                "legendName" to "纯收固定值",
+                "labelText" to "纯收固定值9733.36",
+            ),
+            linkedMapOf(
+                "id" to "net-avg",
+                "value" to 4987,
+                "color" to "#4f8cff",
+                "dashStyle" to "Solid",
+                "legendName" to "纯收平均值",
+                "labelText" to "纯收平均值4987",
+            ),
+            linkedMapOf(
+                "id" to "gross-fixed",
+                "value" to 1744,
+                "color" to "#20b486",
+                "dashStyle" to "Solid",
+                "legendName" to "毛收固定值",
+                "labelText" to "毛收固定值1744",
+            ),
+        )
+
+        val dataLabelTextMap = linkedMapOf(
+            "49800" to "4.98万",
+            "590161.68" to "590161.68",
+            "9733.36" to "9733.36",
+            "1744" to "1744",
+        )
+
+        val gson = Gson()
+        val plotLineConfigArrJSON = gson.toJson(plotLineConfigArr)
+        val dataLabelTextMapJSON = gson.toJson(dataLabelTextMap)
+
         val buildPlotLineJS = """
 (function (plotLineId) {
-    switch (plotLineId) {
-        case "revenue-fixed-high":
-            return {id:"revenue-fixed-high", value:900000, color:"#f39c12", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#f39c12;font-size:9px\">营业额固定定值900000.0</span>"}};
-        case "revenue-avg":
-            return {id:"revenue-avg", value:590161.68, color:"#ef9cd3", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#2f6fd9;font-size:9px\">营业额平均值590161.68</span>"}};
-        case "revenue-fixed-mid":
-            return {id:"revenue-fixed-mid", value:500000, color:"#d6b33e", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#f39c12;font-size:9px\">营业额固定定值500000.0</span>"}};
-        case "net-fixed":
-            return {id:"net-fixed", value:9733.36, color:"#2ec7ff", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#2ec7ff;font-size:9px\">纯收固定值9733.36</span>"}};
-        case "net-avg":
-            return {id:"net-avg", value:4987, color:"#4f8cff", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#4f8cff;font-size:9px\">纯收平均值4987</span>"}};
-        case "gross-fixed":
-            return {id:"gross-fixed", value:1744, color:"#20b486", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#20b486;font-size:9px\">毛收固定值1744</span>"}};
-        default:
-            return null;
+    var configArr = $plotLineConfigArrJSON;
+    var cfg = null;
+    for (var i = 0; i < configArr.length; i++) {
+        if (configArr[i].id === plotLineId) {
+            cfg = configArr[i];
+            break;
+        }
     }
+    if (!cfg) {
+        return null;
+    }
+    return {
+        id: cfg.id,
+        value: cfg.value,
+        color: cfg.color,
+        dashStyle: cfg.dashStyle || "Solid",
+        width: 1,
+        zIndex: 6,
+        label: {
+            useHTML: true,
+            align: "right",
+            x: -20,
+            y: -8,
+            style: {
+                color: cfg.color,
+                fontSize: "9px",
+                backgroundColor: "rgba(255,255,255,0.92)",
+                padding: "1px",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: cfg.color,
+                borderRadius: "3px",
+                textOutline: "none"
+            },
+            text: "<span style=color:" + cfg.color + ";font-size:9px;line-height:1.2;white-space:nowrap;background-color:rgba(255,255,255,0.92);padding:1px;border:1px solid " + cfg.color + ";border-radius:3px;>" + cfg.labelText + "</span>"
+        }
+    };
 })
 """.trimIndent()
 
@@ -329,9 +413,9 @@ object JSFunctionForAALegendComposer {
 
     var buildPlotLine = $buildPlotLineJS;
     var hasPlotLine = $hasPlotLineJS;
-    var plotLineIds = ["revenue-fixed-high", "revenue-avg", "revenue-fixed-mid", "net-fixed", "net-avg", "gross-fixed"];
-    for (var i = 0; i < plotLineIds.length; i++) {
-        var plotLineId = plotLineIds[i];
+    var configArr = $plotLineConfigArrJSON;
+    for (var i = 0; i < configArr.length; i++) {
+        var plotLineId = configArr[i].id;
         if (!hasPlotLine(axis, plotLineId)) {
             var line = buildPlotLine(plotLineId);
             if (line) {
@@ -350,110 +434,26 @@ object JSFunctionForAALegendComposer {
             .zIndex(2)
             .data(columnSeriesData)
 
-        val proxySeriesArr: Array<Any> = arrayOf(
+        val proxySeriesArr: Array<Any> = plotLineConfigArr.map { config ->
+            val plotLineId = config["id"] as String
             linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-revenue-fixed-high",
+                "id" to "legend-proxy-$plotLineId",
                 "type" to AAChartType.Line.value,
-                "name" to "营收固定900000",
+                "name" to (config["legendName"] as String),
                 "data" to arrayOf<Any?>(null),
-                "color" to "#f39c12",
-                "dashStyle" to "Solid",
+                "color" to (config["color"] as String),
+                "dashStyle" to (config["dashStyle"] as String),
                 "lineWidth" to 2,
                 "showInLegend" to true,
                 "enableMouseTracking" to false,
                 "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to "revenue-fixed-high",
+                "customPlotLineId" to plotLineId,
                 "events" to linkedMapOf(
                     "show" to proxyShowEventJS,
                     "hide" to proxyHideEventJS,
                 ),
-            ),
-            linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-revenue-avg",
-                "type" to AAChartType.Line.value,
-                "name" to "营收平均值",
-                "data" to arrayOf<Any?>(null),
-                "color" to "#ef9cd3",
-                "dashStyle" to "Solid",
-                "lineWidth" to 2,
-                "showInLegend" to true,
-                "enableMouseTracking" to false,
-                "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to "revenue-avg",
-                "events" to linkedMapOf(
-                    "show" to proxyShowEventJS,
-                    "hide" to proxyHideEventJS,
-                ),
-            ),
-            linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-revenue-fixed-mid",
-                "type" to AAChartType.Line.value,
-                "name" to "营收固定500000",
-                "data" to arrayOf<Any?>(null),
-                "color" to "#d6b33e",
-                "dashStyle" to "Solid",
-                "lineWidth" to 2,
-                "showInLegend" to true,
-                "enableMouseTracking" to false,
-                "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to "revenue-fixed-mid",
-                "events" to linkedMapOf(
-                    "show" to proxyShowEventJS,
-                    "hide" to proxyHideEventJS,
-                ),
-            ),
-            linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-net-fixed",
-                "type" to AAChartType.Line.value,
-                "name" to "纯收固定值",
-                "data" to arrayOf<Any?>(null),
-                "color" to "#2ec7ff",
-                "dashStyle" to "Solid",
-                "lineWidth" to 2,
-                "showInLegend" to true,
-                "enableMouseTracking" to false,
-                "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to "net-fixed",
-                "events" to linkedMapOf(
-                    "show" to proxyShowEventJS,
-                    "hide" to proxyHideEventJS,
-                ),
-            ),
-            linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-net-avg",
-                "type" to AAChartType.Line.value,
-                "name" to "纯收平均值",
-                "data" to arrayOf<Any?>(null),
-                "color" to "#4f8cff",
-                "dashStyle" to "Solid",
-                "lineWidth" to 2,
-                "showInLegend" to true,
-                "enableMouseTracking" to false,
-                "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to "net-avg",
-                "events" to linkedMapOf(
-                    "show" to proxyShowEventJS,
-                    "hide" to proxyHideEventJS,
-                ),
-            ),
-            linkedMapOf<String, Any?>(
-                "id" to "legend-proxy-gross-fixed",
-                "type" to AAChartType.Line.value,
-                "name" to "毛收固定值",
-                "data" to arrayOf<Any?>(null),
-                "color" to "#20b486",
-                "dashStyle" to "Solid",
-                "lineWidth" to 2,
-                "showInLegend" to true,
-                "enableMouseTracking" to false,
-                "marker" to linkedMapOf("enabled" to false),
-                "customPlotLineId" to "gross-fixed",
-                "events" to linkedMapOf(
-                    "show" to proxyShowEventJS,
-                    "hide" to proxyHideEventJS,
-                ),
-            ),
-        )
+            )
+        }.toTypedArray()
 
         val aaOptions = AAOptions()
             .chart(
@@ -552,11 +552,9 @@ function () {
                                         """
 function () {
     var y = Number(this.y);
-    if (y === 49800) return '4.98万';
-    if (y === 590161.68) return '590161.68';
-    if (y === 9733.36) return '9733.36';
-    if (y === 1744) return '1744';
-    return String(y);
+    var key = Number(Math.round(y * 100) / 100).toString();
+    var textMap = $dataLabelTextMapJSON;
+    return textMap[key] || String(y);
 }"""
                                     )
                             )
