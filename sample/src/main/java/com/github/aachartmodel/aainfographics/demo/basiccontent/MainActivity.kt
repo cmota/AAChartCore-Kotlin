@@ -292,7 +292,8 @@ fun MainExpandableListScreen(modifier: Modifier = Modifier) {
         listOf(
             "disableLegendClickEventForNormalChart---禁用常规图表 legend 点击事件",
             "disableLegendClickEventForPieChart---禁用饼图 legend 点击事件",
-            "customLegendItemClickEvent---自定义图例 legend 的点击事件"
+            "customLegendItemClickEvent---自定义图例 legend 的点击事件",
+            "plotLinesWithVirtualSeriesLegendProxy---plotLines + 虚拟 series 图例联动"
         ),
         listOf(
             "setCrosshairAndTooltipToTheDefaultPositionAfterLoadingChart---图表加载完成后设置 crosshair 和 tooltip 到默认位置",
@@ -503,7 +504,8 @@ fun MainExpandableListScreen(modifier: Modifier = Modifier) {
         listOf(
             "disableLegendClickEventForNormalChart",
             "disableLegendClickEventForPieChart",
-            "customLegendItemClickEvent"
+            "customLegendItemClickEvent",
+            "plotLinesWithVirtualSeriesLegendProxy"
         ),
         listOf(
             "setCrosshairAndTooltipToTheDefaultPositionAfterLoadingChart",

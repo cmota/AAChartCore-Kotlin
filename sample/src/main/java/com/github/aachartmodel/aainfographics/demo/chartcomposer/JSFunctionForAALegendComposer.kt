@@ -4,6 +4,7 @@ import com.github.aachartmodel.aainfographics.aachartcreator.*
 import com.github.aachartmodel.aainfographics.aaoptionsmodel.*
 import com.github.aachartmodel.aainfographics.aatools.AAColor
 import com.github.aachartmodel.aainfographics.aatools.AAGradientColor
+import com.github.aachartmodel.aainfographics.aatools.AAJSStringPurer
 
 object JSFunctionForAALegendComposer {
 
@@ -212,6 +213,366 @@ object JSFunctionForAALegendComposer {
         return enableDefault;
     }"""
             )
+        return aaOptions
+    }
+
+    // https://github.com/AAChartModel/AAChartCore-Kotlin/issues/265
+    // plotLines + virtual legend proxy series (data: [null]) demo
+    fun plotLinesWithVirtualSeriesLegendProxy(): AAOptions {
+        val dateTickX = 1
+        val dateLabel = "0622"
+
+        val columnSeriesData: Array<Any> = arrayOf(
+            linkedMapOf<String, Any>(
+                "x" to 0.82,
+                "y" to 49800,
+                "color" to "#f3b300",
+                "customName" to "营业额低值",
+            ),
+            linkedMapOf<String, Any>(
+                "x" to 0.94,
+                "y" to 590161.68,
+                "color" to "#2563eb",
+                "customName" to "营业额",
+            ),
+            linkedMapOf<String, Any>(
+                "x" to 1.06,
+                "y" to 9733.36,
+                "color" to "#00c2a8",
+                "customName" to "纯收",
+            ),
+            linkedMapOf<String, Any>(
+                "x" to 1.18,
+                "y" to 1744,
+                "color" to "#d0b400",
+                "customName" to "毛收",
+            ),
+        )
+
+        val buildPlotLineJS = """
+(function (plotLineId) {
+    switch (plotLineId) {
+        case "revenue-fixed-high":
+            return {id:"revenue-fixed-high", value:900000, color:"#f39c12", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#f39c12;font-size:9px\">营业额固定定值900000.0</span>"}};
+        case "revenue-avg":
+            return {id:"revenue-avg", value:590161.68, color:"#ef9cd3", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#2f6fd9;font-size:9px\">营业额平均值590161.68</span>"}};
+        case "revenue-fixed-mid":
+            return {id:"revenue-fixed-mid", value:500000, color:"#d6b33e", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#f39c12;font-size:9px\">营业额固定定值500000.0</span>"}};
+        case "net-fixed":
+            return {id:"net-fixed", value:9733.36, color:"#2ec7ff", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#2ec7ff;font-size:9px\">纯收固定值9733.36</span>"}};
+        case "net-avg":
+            return {id:"net-avg", value:4987, color:"#4f8cff", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#4f8cff;font-size:9px\">纯收平均值4987</span>"}};
+        case "gross-fixed":
+            return {id:"gross-fixed", value:1744, color:"#20b486", dashStyle:"Solid", width:1, zIndex:6, label:{useHTML:true, align:"right", x:-20, y:-8, text:"<span style=\"color:#20b486;font-size:9px\">毛收固定值1744</span>"}};
+        default:
+            return null;
+    }
+})
+""".trimIndent()
+
+        val hasPlotLineJS = """
+(function (axis, plotLineId) {
+    var list = axis && axis.plotLinesAndBands ? axis.plotLinesAndBands : [];
+    for (var i = 0; i < list.length; i++) {
+        var item = list[i];
+        if (item && item.options && item.options.id === plotLineId) {
+            return true;
+        }
+    }
+    return false;
+})
+""".trimIndent()
+
+        val proxyShowEventJSRaw = """
+(function () {
+    var plotLineId = this.options && this.options.customPlotLineId;
+    if (!plotLineId) {
+        return;
+    }
+    var axis = this.chart.yAxis && this.chart.yAxis[0];
+    if (!axis) {
+        return;
+    }
+
+    var buildPlotLine = $buildPlotLineJS;
+    var hasPlotLine = $hasPlotLineJS;
+    if (!hasPlotLine(axis, plotLineId)) {
+        var line = buildPlotLine(plotLineId);
+        if (line) {
+            axis.addPlotLine(line);
+        }
+    }
+})
+""".trimIndent()
+        val proxyShowEventJS = AAJSStringPurer.pureAnonymousJSFunctionString(proxyShowEventJSRaw)!!
+
+        val proxyHideEventJSRaw = """
+(function () {
+    var plotLineId = this.options && this.options.customPlotLineId;
+    if (!plotLineId) {
+        return;
+    }
+    var axis = this.chart.yAxis && this.chart.yAxis[0];
+    if (axis) {
+        axis.removePlotLine(plotLineId);
+    }
+})
+""".trimIndent()
+        val proxyHideEventJS = AAJSStringPurer.pureAnonymousJSFunctionString(proxyHideEventJSRaw)!!
+
+        val chartLoadJS = """
+(function () {
+    var axis = this.yAxis && this.yAxis[0];
+    if (!axis) {
+        return;
+    }
+
+    var buildPlotLine = $buildPlotLineJS;
+    var hasPlotLine = $hasPlotLineJS;
+    var plotLineIds = ["revenue-fixed-high", "revenue-avg", "revenue-fixed-mid", "net-fixed", "net-avg", "gross-fixed"];
+    for (var i = 0; i < plotLineIds.length; i++) {
+        var plotLineId = plotLineIds[i];
+        if (!hasPlotLine(axis, plotLineId)) {
+            var line = buildPlotLine(plotLineId);
+            if (line) {
+                axis.addPlotLine(line);
+            }
+        }
+    }
+})
+""".trimIndent()
+
+        val columnSeries = AASeriesElement()
+            .id("single-column-series")
+            .type(AAChartType.Column)
+            .name("营业数据")
+            .showInLegend(false)
+            .zIndex(2)
+            .data(columnSeriesData)
+
+        val proxySeriesArr: Array<Any> = arrayOf(
+            linkedMapOf<String, Any?>(
+                "id" to "legend-proxy-revenue-fixed-high",
+                "type" to AAChartType.Line.value,
+                "name" to "营收固定900000",
+                "data" to arrayOf<Any?>(null),
+                "color" to "#f39c12",
+                "dashStyle" to "Solid",
+                "lineWidth" to 2,
+                "showInLegend" to true,
+                "enableMouseTracking" to false,
+                "marker" to linkedMapOf("enabled" to false),
+                "customPlotLineId" to "revenue-fixed-high",
+                "events" to linkedMapOf(
+                    "show" to proxyShowEventJS,
+                    "hide" to proxyHideEventJS,
+                ),
+            ),
+            linkedMapOf<String, Any?>(
+                "id" to "legend-proxy-revenue-avg",
+                "type" to AAChartType.Line.value,
+                "name" to "营收平均值",
+                "data" to arrayOf<Any?>(null),
+                "color" to "#ef9cd3",
+                "dashStyle" to "Solid",
+                "lineWidth" to 2,
+                "showInLegend" to true,
+                "enableMouseTracking" to false,
+                "marker" to linkedMapOf("enabled" to false),
+                "customPlotLineId" to "revenue-avg",
+                "events" to linkedMapOf(
+                    "show" to proxyShowEventJS,
+                    "hide" to proxyHideEventJS,
+                ),
+            ),
+            linkedMapOf<String, Any?>(
+                "id" to "legend-proxy-revenue-fixed-mid",
+                "type" to AAChartType.Line.value,
+                "name" to "营收固定500000",
+                "data" to arrayOf<Any?>(null),
+                "color" to "#d6b33e",
+                "dashStyle" to "Solid",
+                "lineWidth" to 2,
+                "showInLegend" to true,
+                "enableMouseTracking" to false,
+                "marker" to linkedMapOf("enabled" to false),
+                "customPlotLineId" to "revenue-fixed-mid",
+                "events" to linkedMapOf(
+                    "show" to proxyShowEventJS,
+                    "hide" to proxyHideEventJS,
+                ),
+            ),
+            linkedMapOf<String, Any?>(
+                "id" to "legend-proxy-net-fixed",
+                "type" to AAChartType.Line.value,
+                "name" to "纯收固定值",
+                "data" to arrayOf<Any?>(null),
+                "color" to "#2ec7ff",
+                "dashStyle" to "Solid",
+                "lineWidth" to 2,
+                "showInLegend" to true,
+                "enableMouseTracking" to false,
+                "marker" to linkedMapOf("enabled" to false),
+                "customPlotLineId" to "net-fixed",
+                "events" to linkedMapOf(
+                    "show" to proxyShowEventJS,
+                    "hide" to proxyHideEventJS,
+                ),
+            ),
+            linkedMapOf<String, Any?>(
+                "id" to "legend-proxy-net-avg",
+                "type" to AAChartType.Line.value,
+                "name" to "纯收平均值",
+                "data" to arrayOf<Any?>(null),
+                "color" to "#4f8cff",
+                "dashStyle" to "Solid",
+                "lineWidth" to 2,
+                "showInLegend" to true,
+                "enableMouseTracking" to false,
+                "marker" to linkedMapOf("enabled" to false),
+                "customPlotLineId" to "net-avg",
+                "events" to linkedMapOf(
+                    "show" to proxyShowEventJS,
+                    "hide" to proxyHideEventJS,
+                ),
+            ),
+            linkedMapOf<String, Any?>(
+                "id" to "legend-proxy-gross-fixed",
+                "type" to AAChartType.Line.value,
+                "name" to "毛收固定值",
+                "data" to arrayOf<Any?>(null),
+                "color" to "#20b486",
+                "dashStyle" to "Solid",
+                "lineWidth" to 2,
+                "showInLegend" to true,
+                "enableMouseTracking" to false,
+                "marker" to linkedMapOf("enabled" to false),
+                "customPlotLineId" to "gross-fixed",
+                "events" to linkedMapOf(
+                    "show" to proxyShowEventJS,
+                    "hide" to proxyHideEventJS,
+                ),
+            ),
+        )
+
+        val aaOptions = AAOptions()
+            .chart(
+                AAChart()
+                    .type(AAChartType.Column)
+                    .backgroundColor(AAColor.White)
+                    .events(AAChartEvents().load(chartLoadJS))
+                    .margin(arrayOf(10, 18, 90, 58))
+            )
+            .xAxis(
+                AAXAxis()
+                    .min(0.6)
+                    .max(1.4)
+                    .tickPositions(arrayOf<Any>(dateTickX))
+                    .lineColor("#c6c6c6")
+                    .lineWidth(1)
+                    .tickLength(0)
+                    .labels(
+                        AALabels()
+                            .style(AAStyle().color("#7a7a7a").fontSize(12))
+                            .formatter(
+                                """
+function () {
+    return Number(this.value) === $dateTickX ? '$dateLabel' : '';
+}"""
+                            )
+                    )
+            )
+            .yAxis(
+                AAYAxis()
+                    .min(0)
+                    .max(1250000)
+                    .tickPositions(arrayOf<Any>(0, 250000, 500000, 750000, 1000000, 1250000))
+                    .lineWidth(1)
+                    .gridLineWidth(0)
+                    .labels(
+                        AALabels()
+                            .style(AAStyle().color("#666666").fontSize(12))
+                            .formatter(
+                                """
+function () {
+    var value = Number(this.value);
+    if (value === 0) return '0';
+    if (value >= 1000000) {
+        var million = value / 1000000;
+        return (million % 1 === 0 ? million : million.toFixed(2)) + '百万';
+    }
+    return (value / 10000) + '万';
+}"""
+                            )
+                    )
+            )
+            .tooltip(
+                AATooltip()
+                    .shared(false)
+                    .formatter(
+                        """
+function () {
+    var pointName = this.point && this.point.options && this.point.options.customName;
+    var nameText = pointName ? pointName : '值';
+    return '$dateLabel' + '<br/>' + nameText + ': <b>' + this.y + '</b>';
+}"""
+                    )
+            )
+            .legend(
+                AALegend()
+                    .enabled(true)
+                    .layout(AAChartLayoutType.Horizontal)
+                    .align(AAChartAlignType.Center)
+                    .verticalAlign(AAChartVerticalAlignType.Bottom)
+                    .y(8)
+                    .itemMarginTop(4)
+                    .itemStyle(AAItemStyle().fontSize(11))
+            )
+            .plotOptions(
+                AAPlotOptions()
+                    .column(
+                        AAColumn()
+                            .pointWidth(14)
+                            .groupPadding(0.18f)
+                            .pointPadding(0.1f)
+                            .borderWidth(0)
+                            .minPointLength(8)
+                            .dataLabels(
+                                AADataLabels()
+                                    .enabled(true)
+                                    .crop(false)
+                                    .overflow("allow")
+                                    .style(
+                                        AAStyle()
+                                            .color("#333333")
+                                            .fontSize(11)
+                                            .textOutline("none")
+                                    )
+                                    .formatter(
+                                        """
+function () {
+    var y = Number(this.y);
+    if (y === 49800) return '4.98万';
+    if (y === 590161.68) return '590161.68';
+    if (y === 9733.36) return '9733.36';
+    if (y === 1744) return '1744';
+    return String(y);
+}"""
+                                    )
+                            )
+                    )
+                    .series(
+                        AASeries()
+                            .states(AAStates().inactive(AAInactive().opacity(1)))
+                    )
+            )
+            .series(
+                arrayOf(
+                    columnSeries,
+                    *proxySeriesArr
+                )
+            )
+
         return aaOptions
     }
 }
