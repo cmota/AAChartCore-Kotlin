@@ -262,12 +262,30 @@ object JSFunctionForAALegendComposer {
         return aaOptions
     }
 
-    // https://github.com/AAChartModel/AAChartCore-Kotlin/issues/265
-    // plotLines + virtual legend proxy series (data: [null]) demo
+    /**
+     * https://github.com/AAChartModel/AAChartCore-Kotlin/issues/265
+     *
+     * 这个示例的核心目的:
+     * 1. 业务上需要像 plotLines 一样在 yAxis 上画“参考线 + 文字标签”
+     * 2. 这些参考线还要能出现在 legend 中，并支持点击 legend 显示/隐藏
+     *
+     * Highcharts 默认行为里，`yAxis.plotLines` 不属于 `series`，因此不会自动生成 legend item，
+     * 也就没有和 legend 点击事件的绑定关系。直接给原生 plotLines 做 legend 联动，成本较高且不直观。
+     *
+     * 这里采用“虚拟 series 代理”的方案:
+     * - 每条 plotLine 对应一个 line 类型的虚拟 series
+     * - 虚拟 series 使用 `data: [null]`，只用于生成 legend 圆点，不参与实际绘制
+     * - 通过该虚拟 series 的 show/hide 事件，转而 add/remove 对应 id 的 plotLine
+     *
+     * 这样可以同时得到:
+     * - 原生 plotLines 的视觉表现(横线 + 右侧标签)
+     * - legend 与显示/隐藏行为的一一对应
+     */
     fun plotLinesWithVirtualSeriesLegendProxy(): AAOptions {
         val dateTickX = 1
         val dateLabel = "0622"
 
+        // 实际业务柱状数据: 只保留一个柱状 series，柱子颜色由点级别 color 决定。
         val columnSeriesDataArr: Array<Any> = arrayOf(
             ColumnSeriesData(
                 x = 0.82,
@@ -295,6 +313,9 @@ object JSFunctionForAALegendComposer {
             ),
         )
 
+        // 每条参考线的配置来源。后续通过同一份配置:
+        // 1) 动态构建 plotLine
+        // 2) 生成对应 legend 虚拟 series
         val plotLineConfigArr: Array<PlotLineConfig> = arrayOf(
             PlotLineConfig(
                 id = "revenue-fixed-high",
@@ -357,6 +378,7 @@ object JSFunctionForAALegendComposer {
         val plotLineConfigArrJSON = gson.toJson(plotLineConfigArr)
         val dataLabelTextMapJSON = gson.toJson(dataLabelTextMap)
 
+        // 根据 plotLineId 从配置数组查找，并生成 yAxis.plotLine 配置对象。
         val buildPlotLineJS = """
 (function (plotLineId) {
     var configArr = $plotLineConfigArrJSON;
@@ -399,6 +421,7 @@ object JSFunctionForAALegendComposer {
 })
 """.trimIndent()
 
+        // 避免重复 addPlotLine: 先检查 axis 上是否已存在同 id 的 plotLine。
         val hasPlotLineJS = """
 (function (axis, plotLineId) {
     var list = axis && axis.plotLinesAndBands ? axis.plotLinesAndBands : [];
@@ -412,6 +435,7 @@ object JSFunctionForAALegendComposer {
 })
 """.trimIndent()
 
+        // 虚拟 series 显示时 -> 添加对应 plotLine。
         val proxyShowEventJSRaw = """
 (function () {
     var plotLineId = this.options && this.options.customPlotLineId;
@@ -435,6 +459,7 @@ object JSFunctionForAALegendComposer {
 """.trimIndent()
         val proxyShowEventJS = AAJSStringPurer.pureAnonymousJSFunctionString(proxyShowEventJSRaw)!!
 
+        // 虚拟 series 隐藏时 -> 移除对应 plotLine。
         val proxyHideEventJSRaw = """
 (function () {
     var plotLineId = this.options && this.options.customPlotLineId;
@@ -449,6 +474,7 @@ object JSFunctionForAALegendComposer {
 """.trimIndent()
         val proxyHideEventJS = AAJSStringPurer.pureAnonymousJSFunctionString(proxyHideEventJSRaw)!!
 
+        // 图表初始化时默认把所有 plotLine 都画出来，保证首次进入页面即与 legend 状态一致。
         val chartLoadJS = """
 (function () {
     var axis = this.yAxis && this.yAxis[0];
@@ -479,6 +505,10 @@ object JSFunctionForAALegendComposer {
             .zIndex(2)
             .data(columnSeriesDataArr)
 
+        // 为每条 plotLine 创建一个 legend 代理 series:
+        // - data: [null] => 不真正绘制折线
+        // - showInLegend: true => 只提供 legend 项
+        // - 通过 show/hide 事件反向控制对应 plotLine
         val proxySeriesArr: Array<Any> = plotLineConfigArr.map { config ->
             val plotLineId = config.id
 
