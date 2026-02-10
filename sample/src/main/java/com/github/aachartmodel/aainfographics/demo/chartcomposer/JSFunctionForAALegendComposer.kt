@@ -9,6 +9,22 @@ import com.google.gson.Gson
 
 object JSFunctionForAALegendComposer {
 
+    private data class ColumnSeriesData(
+        val x: Number,
+        val y: Number,
+        val color: String,
+        val customName: String,
+    )
+
+    private data class PlotLineConfig(
+        val id: String,
+        val value: Number,
+        val color: String,
+        val dashStyle: String,
+        val legendName: String,
+        val labelText: String,
+    )
+
     private class LegendProxySeriesElement : AASeriesElement() {
         var customPlotLineId: String? = null
         var events: Map<String, String>? = null
@@ -251,81 +267,81 @@ object JSFunctionForAALegendComposer {
         val dateTickX = 1
         val dateLabel = "0622"
 
-        val columnSeriesData: Array<Any> = arrayOf(
-            linkedMapOf<String, Any>(
-                "x" to 0.82,
-                "y" to 49800,
-                "color" to "#f3b300",
-                "customName" to "营业额低值",
+        val columnSeriesDataArr: Array<Any> = arrayOf(
+            ColumnSeriesData(
+                x = 0.82,
+                y = 49800,
+                color = "#f3b300",
+                customName = "营业额低值",
             ),
-            linkedMapOf<String, Any>(
-                "x" to 0.94,
-                "y" to 590161.68,
-                "color" to "#2563eb",
-                "customName" to "营业额",
+            ColumnSeriesData(
+                x = 0.94,
+                y = 590161.68,
+                color = "#2563eb",
+                customName = "营业额",
             ),
-            linkedMapOf<String, Any>(
-                "x" to 1.06,
-                "y" to 9733.36,
-                "color" to "#00c2a8",
-                "customName" to "纯收",
+            ColumnSeriesData(
+                x = 1.06,
+                y = 9733.36,
+                color = "#00c2a8",
+                customName = "纯收",
             ),
-            linkedMapOf<String, Any>(
-                "x" to 1.18,
-                "y" to 1744,
-                "color" to "#d0b400",
-                "customName" to "毛收",
+            ColumnSeriesData(
+                x = 1.18,
+                y = 1744,
+                color = "#d0b400",
+                customName = "毛收",
             ),
         )
 
-        val plotLineConfigArr: Array<Map<String, Any>> = arrayOf(
-            linkedMapOf(
-                "id" to "revenue-fixed-high",
-                "value" to 900000,
-                "color" to "#f39c12",
-                "dashStyle" to "Solid",
-                "legendName" to "营收固定900000",
-                "labelText" to "营业额固定定值900000.0",
+        val plotLineConfigArr: Array<PlotLineConfig> = arrayOf(
+            PlotLineConfig(
+                id = "revenue-fixed-high",
+                value = 900000,
+                color = "#f39c12",
+                dashStyle = "Solid",
+                legendName = "营收固定900000",
+                labelText = "营业额固定定值900000.0",
             ),
-            linkedMapOf(
-                "id" to "revenue-avg",
-                "value" to 590161.68,
-                "color" to "#ef9cd3",
-                "dashStyle" to "Solid",
-                "legendName" to "营收平均值",
-                "labelText" to "营业额平均值590161.68",
+            PlotLineConfig(
+                id = "revenue-avg",
+                value = 590161.68,
+                color = "#ef9cd3",
+                dashStyle = "Solid",
+                legendName = "营收平均值",
+                labelText = "营业额平均值590161.68",
             ),
-            linkedMapOf(
-                "id" to "revenue-fixed-mid",
-                "value" to 500000,
-                "color" to "#d6b33e",
-                "dashStyle" to "Solid",
-                "legendName" to "营收固定500000",
-                "labelText" to "营业额固定定值500000.0",
+            PlotLineConfig(
+                id = "revenue-fixed-mid",
+                value = 500000,
+                color = "#d6b33e",
+                dashStyle = "Solid",
+                legendName = "营收固定500000",
+                labelText = "营业额固定定值500000.0",
             ),
-            linkedMapOf(
-                "id" to "net-fixed",
-                "value" to 9733.36,
-                "color" to "#2ec7ff",
-                "dashStyle" to "Solid",
-                "legendName" to "纯收固定值",
-                "labelText" to "纯收固定值9733.36",
+            PlotLineConfig(
+                id = "net-fixed",
+                value = 9733.36,
+                color = "#2ec7ff",
+                dashStyle = "Solid",
+                legendName = "纯收固定值",
+                labelText = "纯收固定值9733.36",
             ),
-            linkedMapOf(
-                "id" to "net-avg",
-                "value" to 4987,
-                "color" to "#4f8cff",
-                "dashStyle" to "Solid",
-                "legendName" to "纯收平均值",
-                "labelText" to "纯收平均值4987",
+            PlotLineConfig(
+                id = "net-avg",
+                value = 4987,
+                color = "#4f8cff",
+                dashStyle = "Solid",
+                legendName = "纯收平均值",
+                labelText = "纯收平均值4987",
             ),
-            linkedMapOf(
-                "id" to "gross-fixed",
-                "value" to 1744,
-                "color" to "#20b486",
-                "dashStyle" to "Solid",
-                "legendName" to "毛收固定值",
-                "labelText" to "毛收固定值1744",
+            PlotLineConfig(
+                id = "gross-fixed",
+                value = 1744,
+                color = "#20b486",
+                dashStyle = "Solid",
+                legendName = "毛收固定值",
+                labelText = "毛收固定值1744",
             ),
         )
 
@@ -460,10 +476,10 @@ object JSFunctionForAALegendComposer {
             .name("营业数据")
             .showInLegend(false)
             .zIndex(2)
-            .data(columnSeriesData)
+            .data(columnSeriesDataArr)
 
         val proxySeriesArr: Array<Any> = plotLineConfigArr.map { config ->
-            val plotLineId = config["id"] as String
+            val plotLineId = config.id
 
             LegendProxySeriesElement()
                 .customPlotLineId(plotLineId)
@@ -471,9 +487,9 @@ object JSFunctionForAALegendComposer {
                 .nullableData(arrayOf<Any?>(null))
                 .id("legend-proxy-$plotLineId")
                 .type(AAChartType.Line)
-                .name(config["legendName"] as String)
-                .color(config["color"] as String)
-                .dashStyle(AAChartLineDashStyleType.valueOf((config["dashStyle"] as String)))
+                .name(config.legendName)
+                .color(config.color)
+                .dashStyle(AAChartLineDashStyleType.valueOf(config.dashStyle))
                 .lineWidth(2)
                 .showInLegend(true)
                 .enableMouseTracking(false)
