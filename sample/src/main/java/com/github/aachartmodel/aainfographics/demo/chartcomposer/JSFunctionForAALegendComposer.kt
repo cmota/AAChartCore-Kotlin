@@ -348,7 +348,7 @@ object JSFunctionForAALegendComposer {
                 borderRadius: "3px",
                 textOutline: "none"
             },
-            text: "<span style=color:" + cfg.color + ";font-size:9px;line-height:1.2;white-space:nowrap;background-color:rgba(255,255,255,0.92);padding:1px;border:1px solid " + cfg.color + ";border-radius:3px;>" + cfg.labelText + "</span>"
+            text: cfg.labelText
         }
     };
 })
