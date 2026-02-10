@@ -280,12 +280,12 @@ open class AASeriesElement {
 }
 
 class AADataElement {
-    private var name: String? = null
-    private var x: Number? = null
-    private var y: Number? = null
-    private var color: Any? = null
-    private var dataLabels: AADataLabels? = null
-    private var marker: AAMarker? = null
+    var name: String? = null
+    var x: Number? = null
+    var y: Number? = null
+    var color: Any? = null
+    var dataLabels: AADataLabels? = null
+    var marker: AAMarker? = null
 
     fun name(prop: String): AADataElement {
         name = prop
@@ -319,11 +319,11 @@ class AADataElement {
 }
 
 class AAShadow {
-    private var color: String? = null
-    private var offsetX: Number? = null
-    private var offsetY: Number? = null
-    private var opacity: Float? = null
-    private var width: Number? = null
+    var color: String? = null
+    var offsetX: Number? = null
+    var offsetY: Number? = null
+    var opacity: Float? = null
+    var width: Number? = null
 
     fun color(prop: String): AAShadow {
         color = prop
