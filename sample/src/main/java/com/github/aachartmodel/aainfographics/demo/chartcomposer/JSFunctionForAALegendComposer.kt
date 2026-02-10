@@ -464,21 +464,22 @@ object JSFunctionForAALegendComposer {
 
         val proxySeriesArr: Array<Any> = plotLineConfigArr.map { config ->
             val plotLineId = config["id"] as String
-            val proxySeries = LegendProxySeriesElement().apply {
-                id = "legend-proxy-$plotLineId"
-                type = AAChartType.Line.value
-                name = config["legendName"] as String
-                nullableData(arrayOf<Any?>(null))
-                color = config["color"] as String
-                dashStyle = config["dashStyle"] as String
-                lineWidth = 2
-                showInLegend = true
-                enableMouseTracking = false
-                marker = AAMarker().enabled(false)
-                customPlotLineId(plotLineId)
-                events(proxyShowEventJS, proxyHideEventJS)
-            }
-            proxySeries
+
+            LegendProxySeriesElement()
+                .customPlotLineId(plotLineId)
+                .events(proxyShowEventJS, proxyHideEventJS)
+                .nullableData(arrayOf<Any?>(null))
+                .id("legend-proxy-$plotLineId")
+                .type(AAChartType.Line)
+                .name(config["legendName"] as String)
+                .color(config["color"] as String)
+                .dashStyle(AAChartLineDashStyleType.valueOf((config["dashStyle"] as String)))
+                .lineWidth(2)
+                .showInLegend(true)
+                .enableMouseTracking(false)
+                .marker(AAMarker()
+                    .enabled(false))
+
         }.toTypedArray()
 
         val aaOptions = AAOptions()
