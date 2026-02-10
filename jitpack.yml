@@ -4,4 +4,4 @@ before_install:
   - export GRADLE_USER_HOME=$HOME/.gradle
   - mkdir -p $GRADLE_USER_HOME
 install:
-  - ./gradlew clean assemble publishToMavenLocal --no-daemon --stacktrace --build-cache -Dorg.gradle.jvmargs="-Xmx2048m"
+  - ./gradlew :charts:clean :charts:assembleRelease :charts:publishToMavenLocal --no-daemon --stacktrace --build-cache -Dorg.gradle.jvmargs="-Xmx2048m"
