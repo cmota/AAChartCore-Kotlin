@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -91,7 +92,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainTabScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabItems = listOf("AAChartModel", "AAOptions")
+    val tabItems = listOf("AAChartModel", "AAOptions", "更多")
     val isDark = isSystemInDarkTheme()
     val surfaceColor = if (isDark) Color(0xFF121212) else Color.White
     val navBarColor = if (isDark) Color(0xFF1C1C1E) else Color.White
@@ -106,7 +107,11 @@ fun MainTabScreen() {
                     NavigationBarItem(
                         icon = {
                             Icon(
-                                imageVector = if (index == 0) Icons.Default.List else Icons.Default.DateRange,
+                                imageVector = when (index) {
+                                    0 -> Icons.Default.List
+                                    1 -> Icons.Default.DateRange
+                                    else -> Icons.Default.Settings
+                                },
                                 contentDescription = title
                             )
                         },
@@ -124,17 +129,16 @@ fun MainTabScreen() {
         when (selectedTab) {
             0 -> AAChartModelListScreen(modifier = modifier)
             1 -> AAOptionsListScreen(modifier = modifier)
+            2 -> AdditionalChartListScreen(modifier = modifier)
         }
     }
 }
 
 @Composable
-fun AAOptionsListScreen(modifier: Modifier = Modifier) {
+fun AdditionalChartListScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
 
-    // Group titles
     val groupTitleList = listOf(
-        "Draw Chart With AAOptions---通过Options绘图",
         "Only Refresh data ---即时刷新图表数据",
         "JS Function For AAOptions ---通过带有 JS 函数的 Options 绘图",
         "Evaluate JS String Function---执行js函数",
@@ -148,30 +152,7 @@ fun AAOptionsListScreen(modifier: Modifier = Modifier) {
         "Compose 示例"
     )
 
-
-    // Child data - chart type names
     val chartTypeNameList = listOf(
-        listOf(
-            "customLegendStyle",
-            "drawChartWithOptionsOne",
-            "AAPlotLinesForChart",
-            "customAATooltipWithJSFunction",
-            "customXAxisCrosshairStyle",
-            "XAxisLabelsFontColorWithHTMLString",
-            "XAxisLabelsFontColorAndFontSizeWithHTMLString",
-            "_DataLabels_XAXis_YAxis_Legend_Style",
-            "XAxisPlotBand",
-            "configureTheMirrorColumnChart",
-            "configureDoubleYAxisChartOptions",
-            "configureTripleYAxesMixedChart",
-            "customLineChartDataLabelsFormat",
-            "configureDoubleYAxesAndColumnLineMixedChart",
-            "configureDoubleYAxesMarketDepthChart",
-            "customAreaChartTooltipStyleLikeHTMLTable",
-            "simpleGaugeChart",
-            "gaugeChartWithPlotBand",
-            "doubleLayerHalfPieChart"
-        ),
         listOf(
             "Column Chart---柱形图",
             "Bar Chart---条形图",
@@ -267,30 +248,7 @@ fun AAOptionsListScreen(modifier: Modifier = Modifier) {
         )
     )
 
-
-    // Chart type data for navigation
     val chartTypeList = listOf(
-        listOf(
-            "customLegendStyle",
-            "AAPlotBandsForChart",
-            "AAPlotLinesForChart",
-            "customAATooltipWithJSFunction",
-            "customXAxisCrosshairStyle",
-            "XAxisLabelsFontColorWithHTMLString",
-            "XAxisLabelsFontColorAndFontSizeWithHTMLString",
-            "_DataLabels_XAXis_YAxis_Legend_Style",
-            "XAxisPlotBand",
-            "configureTheMirrorColumnChart",
-            "configureDoubleYAxisChartOptions",
-            "configureTripleYAxesMixedChart",
-            "customLineChartDataLabelsFormat",
-            "configureDoubleYAxesAndColumnLineMixedChart",
-            "configureDoubleYAxesMarketDepthChart",
-            "customAreaChartTooltipStyleLikeHTMLTable",
-            "simpleGaugeChart",
-            "gaugeChartWithPlotBand",
-            "doubleLayerHalfPieChart"
-        ),
         listOf(
             AAChartType.Column.value,
             AAChartType.Bar.value,
@@ -391,7 +349,7 @@ fun AAOptionsListScreen(modifier: Modifier = Modifier) {
         childData = chartTypeNameList,
         onChildClick = { groupPosition, childPosition ->
             val chartType = chartTypeList.getOrNull(groupPosition)?.getOrNull(childPosition) ?: ""
-            
+
             Toast.makeText(
                 context,
                 "你点击了：${chartTypeNameList.getOrNull(groupPosition)?.getOrNull(childPosition) ?: ""}",
@@ -400,67 +358,62 @@ fun AAOptionsListScreen(modifier: Modifier = Modifier) {
 
             when (groupPosition) {
                 0 -> {
-                    val intent = Intent(context, DrawChartWithAAOptionsActivity::class.java)
-                    intent.putExtra(MainActivity.kChartTypeKey, chartType)
-                    context.startActivity(intent)
-                }
-                1 -> {
                     val intent = Intent(context, OnlyRefreshChartDataActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     context.startActivity(intent)
                 }
-                2 -> {
+                1 -> {
                     val intent = Intent(context, JSFormatterFunctionActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     context.startActivity(intent)
                 }
-                3 -> {
+                2 -> {
                     val intent = Intent(context, EvaluateJSStringFunctionActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     context.startActivity(intent)
                 }
-                4 -> {
+                3 -> {
                     val intent = Intent(context, DoubleChartsLinkedWorkActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     context.startActivity(intent)
                 }
-                5 -> {
+                4 -> {
                     val intent = Intent(context, ScrollableChartActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     intent.putExtra("position", childPosition)
                     context.startActivity(intent)
                 }
-                6 -> {
+                5 -> {
                     val intent = Intent(context, AdvancedUpdatingFeatureActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     intent.putExtra("position", childPosition)
                     context.startActivity(intent)
                 }
-                7 -> {
+                6 -> {
                     val intent = Intent(context, JSFunctionForAAAxisActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     intent.putExtra("position", childPosition)
                     context.startActivity(intent)
                 }
-                8 -> {
+                7 -> {
                     val intent = Intent(context, JSFunctionForAALegendActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     intent.putExtra("position", childPosition)
                     context.startActivity(intent)
                 }
-                9 -> {
+                8 -> {
                     val intent = Intent(context, JSFunctionForAAChartEventsActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     intent.putExtra("position", childPosition)
                     context.startActivity(intent)
                 }
-                10 -> {
+                9 -> {
                     val intent = Intent(context, JSFunctionForAAOptionsActivity::class.java)
                     intent.putExtra(MainActivity.kChartTypeKey, chartType)
                     intent.putExtra("position", childPosition)
                     context.startActivity(intent)
                 }
-                11 -> {
+                10 -> {
                     val intent = Intent(context, com.github.aachartmodel.aainfographics.demo.compose.ComposeScrollHighlightActivity::class.java)
                     context.startActivity(intent)
                 }
