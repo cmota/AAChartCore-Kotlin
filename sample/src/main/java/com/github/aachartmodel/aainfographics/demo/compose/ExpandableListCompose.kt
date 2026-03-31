@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -118,11 +119,13 @@ fun GroupItem(
     )
     
     // Calculate colors with alpha
+    val isDark = isSystemInDarkTheme()
+    val surfaceColor = if (isDark) Color(0xFF1C1C1E) else Color.White
     val indexBgColor = accentColor.copy(alpha = 0.82f) // ~210/255
-    val textColor = accentColor.copy(alpha = 0.90f) // ~230/255
-    val strokeColor = accentColor.copy(alpha = 0.24f) // ~60/255
-    val expandedBgColor = accentColor.copy(alpha = 0.11f) // ~28/255
-    val backgroundColor = if (isExpanded) expandedBgColor else Color.White
+    val textColor = accentColor.copy(alpha = if (isDark) 1f else 0.90f)
+    val strokeColor = accentColor.copy(alpha = if (isDark) 0.35f else 0.24f)
+    val expandedBgColor = accentColor.copy(alpha = if (isDark) 0.20f else 0.11f)
+    val backgroundColor = if (isExpanded) expandedBgColor else surfaceColor
     
     Card(
         modifier = modifier
@@ -174,7 +177,7 @@ fun GroupItem(
                 modifier = Modifier
                     .size(24.dp)
                     .rotate(rotationAngle),
-                tint = Color.Gray
+                tint = if (isDark) Color.LightGray else Color.Gray
             )
         }
     }
@@ -208,12 +211,13 @@ fun ChildItem(
     modifier: Modifier = Modifier
 ) {
     // Calculate colors with alpha matching original implementation
+    val isDark = isSystemInDarkTheme()
     val indexBgColor = accentColor.copy(alpha = 0.82f) // ~210/255
-    val subtitleColor = accentColor.copy(alpha = 0.67f) // ~170/255
-    val strokeColor = accentColor.copy(alpha = 0.18f) // ~45/255
-    val backgroundColor = accentColor.copy(alpha = 0.09f) // ~24/255
+    val subtitleColor = accentColor.copy(alpha = if (isDark) 0.80f else 0.67f)
+    val strokeColor = accentColor.copy(alpha = if (isDark) 0.30f else 0.18f)
+    val backgroundColor = accentColor.copy(alpha = if (isDark) 0.16f else 0.09f)
     val rippleColor = accentColor.copy(alpha = 0.35f) // ~90/255
-    val chevronColor = accentColor.copy(alpha = 0.78f) // ~200/255
+    val chevronColor = accentColor.copy(alpha = if (isDark) 0.90f else 0.78f)
     
     // Format subtitle: "示例 XX · [分组名称]"
     val subtitle = "示例 ${formatIndex(index)} · $groupName"
@@ -261,7 +265,7 @@ fun ChildItem(
             ) {
                 Text(
                     text = name,
-                    color = Color.Black,
+                    color = if (isDark) Color.White else Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,

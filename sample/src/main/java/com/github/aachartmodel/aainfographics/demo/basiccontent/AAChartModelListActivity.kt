@@ -1,6 +1,7 @@
 package com.github.aachartmodel.aainfographics.demo.basiccontent
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -8,6 +9,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -29,8 +31,10 @@ class AAChartModelListActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
+                val isDark = isSystemInDarkTheme()
+                val surfaceColor = if (isDark) Color(0xFF121212) else Color.White
                 Scaffold(
-                    containerColor = Color.White
+                    containerColor = surfaceColor
                 ) { paddingValues ->
                     AAChartModelListScreen(
                         modifier = Modifier
@@ -62,9 +66,10 @@ class AAChartModelListActivity : ComponentActivity() {
             window.isStatusBarContrastEnforced = false
         }
         val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
+        val isDarkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        controller.isAppearanceLightStatusBars = !isDarkMode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            controller.isAppearanceLightNavigationBars = true
+            controller.isAppearanceLightNavigationBars = !isDarkMode
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")

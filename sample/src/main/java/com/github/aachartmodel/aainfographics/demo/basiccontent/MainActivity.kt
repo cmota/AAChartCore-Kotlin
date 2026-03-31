@@ -1,6 +1,7 @@
 package com.github.aachartmodel.aainfographics.demo.basiccontent
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -8,6 +9,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -66,9 +68,10 @@ class MainActivity : ComponentActivity() {
             window.isStatusBarContrastEnforced = false
         }
         val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
+        val isDarkMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        controller.isAppearanceLightStatusBars = !isDarkMode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            controller.isAppearanceLightNavigationBars = true
+            controller.isAppearanceLightNavigationBars = !isDarkMode
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
@@ -89,12 +92,15 @@ class MainActivity : ComponentActivity() {
 fun MainTabScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabItems = listOf("AAChartModel", "AAOptions")
+    val isDark = isSystemInDarkTheme()
+    val surfaceColor = if (isDark) Color(0xFF121212) else Color.White
+    val navBarColor = if (isDark) Color(0xFF1C1C1E) else Color.White
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = surfaceColor,
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White
+                containerColor = navBarColor
             ) {
                 tabItems.forEachIndexed { index, title ->
                     NavigationBarItem(
